@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Trainer;
 
 use App\Http\Controllers\Controller;
 use App\Models\Program;
+use App\Models\Workout;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -22,7 +23,7 @@ class TrainerProgramController extends Controller
 
         return view('trainer.programs.index', compact('programs'));
     }
-    
+
     /**
      * Show program creation form
      */
@@ -30,7 +31,7 @@ class TrainerProgramController extends Controller
     {
         return view('trainer.programs.create');
     }
-    
+
     /**
      * Store a new program
      */
@@ -73,7 +74,7 @@ class TrainerProgramController extends Controller
         return redirect()->route('trainer.programs.index')
             ->with('success', 'Program created successfully!');
     }
-    
+
     /**
      * Show individual program
      */
@@ -81,7 +82,7 @@ class TrainerProgramController extends Controller
     {
         $trainer = Auth::user()->trainerProfile;
         $program = Program::byTrainer($trainer->id)
-            ->with(['assignments.user', 'assignments.client'])
+            ->with(['assignments.user', 'assignments.client', 'workouts'])
             ->findOrFail($id);
 
         $assignedClients = $program->assignments->map(function ($assignment) {
@@ -96,7 +97,7 @@ class TrainerProgramController extends Controller
 
         return view('trainer.programs.show', compact('program', 'assignedClients'));
     }
-    
+
     /**
      * Show program edit form
      */
@@ -107,7 +108,7 @@ class TrainerProgramController extends Controller
 
         return view('trainer.programs.edit', compact('program'));
     }
-    
+
     /**
      * Update program
      */
@@ -151,7 +152,7 @@ class TrainerProgramController extends Controller
         return redirect()->route('trainer.programs.show', $id)
             ->with('success', 'Program updated successfully!');
     }
-    
+
     /**
      * Delete program
      */
@@ -171,6 +172,130 @@ class TrainerProgramController extends Controller
         return redirect()->route('trainer.programs.index')
             ->with('success', 'Program deleted successfully!');
     }
-    
 
+    /**
+     * Show workout creation form for a program
+     */
+    public function createWorkout($programId)
+    {
+        $trainer = Auth::user()->trainerProfile;
+        $program = Program::byTrainer($trainer->id)->findOrFail($programId);
+
+        return view('trainer.programs.workouts.create', compact('program'));
+    }
+
+    /**
+     * Store a new workout for a program
+     */
+    public function storeWorkout(Request $request, $programId)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'type' => 'required|in:strength,cardio,flexibility,sports,other',
+            'difficulty' => 'required|in:beginner,intermediate,advanced',
+            'duration_minutes' => 'nullable|integer|min:1',
+            'calories_burned' => 'nullable|integer|min:0',
+            'workout_date' => 'required|date',
+            'start_time' => 'nullable|date_format:H:i',
+            'end_time' => 'nullable|date_format:H:i',
+            'notes' => 'nullable|string',
+        ]);
+
+        $trainer = Auth::user()->trainerProfile;
+        $program = Program::byTrainer($trainer->id)->findOrFail($programId);
+
+        Workout::create([
+            'user_id' => $trainer->user_id, // Trainer's user ID
+            'program_id' => $program->id,
+            'name' => $request->name,
+            'description' => $request->description,
+            'type' => $request->type,
+            'difficulty' => $request->difficulty,
+            'duration_minutes' => $request->duration_minutes,
+            'calories_burned' => $request->calories_burned,
+            'workout_date' => $request->workout_date,
+            'start_time' => $request->start_time,
+            'end_time' => $request->end_time,
+            'status' => 'planned',
+            'notes' => $request->notes,
+        ]);
+
+        return redirect()->route('trainer.programs.show', $program->id)
+            ->with('success', 'Workout added to program successfully!');
+    }
+
+    /**
+     * Show workout edit form
+     */
+    public function editWorkout($programId, $workoutId)
+    {
+        $trainer = Auth::user()->trainerProfile;
+        $program = Program::byTrainer($trainer->id)->findOrFail($programId);
+        $workout = Workout::where('program_id', $program->id)
+            ->where('user_id', $trainer->user_id)
+            ->findOrFail($workoutId);
+
+        return view('trainer.programs.workouts.edit', compact('program', 'workout'));
+    }
+
+    /**
+     * Update workout
+     */
+    public function updateWorkout(Request $request, $programId, $workoutId)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'type' => 'required|in:strength,cardio,flexibility,sports,other',
+            'difficulty' => 'required|in:beginner,intermediate,advanced',
+            'duration_minutes' => 'nullable|integer|min:1',
+            'calories_burned' => 'nullable|integer|min:0',
+            'workout_date' => 'required|date',
+            'start_time' => 'nullable|date_format:H:i',
+            'end_time' => 'nullable|date_format:H:i',
+            'status' => 'required|in:planned,in_progress,completed,skipped',
+            'notes' => 'nullable|string',
+        ]);
+
+        $trainer = Auth::user()->trainerProfile;
+        $program = Program::byTrainer($trainer->id)->findOrFail($programId);
+        $workout = Workout::where('program_id', $program->id)
+            ->where('user_id', $trainer->user_id)
+            ->findOrFail($workoutId);
+
+        $workout->update([
+            'name' => $request->name,
+            'description' => $request->description,
+            'type' => $request->type,
+            'difficulty' => $request->difficulty,
+            'duration_minutes' => $request->duration_minutes,
+            'calories_burned' => $request->calories_burned,
+            'workout_date' => $request->workout_date,
+            'start_time' => $request->start_time,
+            'end_time' => $request->end_time,
+            'status' => $request->status,
+            'notes' => $request->notes,
+        ]);
+
+        return redirect()->route('trainer.programs.show', $program->id)
+            ->with('success', 'Workout updated successfully!');
+    }
+
+    /**
+     * Delete workout from program
+     */
+    public function destroyWorkout($programId, $workoutId)
+    {
+        $trainer = Auth::user()->trainerProfile;
+        $program = Program::byTrainer($trainer->id)->findOrFail($programId);
+        $workout = Workout::where('program_id', $program->id)
+            ->where('user_id', $trainer->user_id)
+            ->findOrFail($workoutId);
+
+        $workout->delete();
+
+        return redirect()->route('trainer.programs.show', $program->id)
+            ->with('success', 'Workout deleted successfully!');
+    }
 }

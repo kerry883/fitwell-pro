@@ -15,9 +15,20 @@ class ClientProgramController extends Controller
      */
     public function index()
     {
+        $client = Auth::user()->clientProfile;
+        $clientGoals = $client->goals ?? [];
+
         $programs = Program::public()
             ->published()
             ->with('trainer.user')
+            ->when(!empty($clientGoals), function ($query) use ($clientGoals) {
+                // Filter programs that match client's goals
+                $query->where(function ($q) use ($clientGoals) {
+                    foreach ($clientGoals as $goal) {
+                        $q->orWhereJsonContains('goals', $goal);
+                    }
+                });
+            })
             ->orderBy('created_at', 'desc')
             ->get()
             ->map(function ($program) {
@@ -69,24 +80,34 @@ class ClientProgramController extends Controller
         }
 
         DB::transaction(function () use ($program, $client) {
-            // Create program assignment
-            ProgramAssignment::create([
+            // Create program assignment with pending status
+            $assignment = ProgramAssignment::create([
                 'client_id' => $client->id,
                 'program_id' => $program->id,
                 'assigned_date' => now(),
-                'start_date' => now(),
-                'status' => 'active',
+                'status' => ProgramAssignment::STATUS_PENDING,
                 'current_week' => 1,
                 'current_session' => 1,
                 'progress_percentage' => 0,
             ]);
 
-            // Update program current clients count
-            $program->increment('current_clients');
+            // Create notification for trainer
+            $trainer = $program->trainer->user;
+            \App\Models\Notification::create([
+                'user_id' => $trainer->id,
+                'type' => 'enrollment_request',
+                'title' => 'New Program Enrollment Request',
+                'message' => "Client {$client->user->full_name} has requested to enroll in your program '{$program->name}'.",
+                'data' => [
+                    'program_id' => $program->id,
+                    'client_id' => $client->id,
+                    'assignment_id' => $assignment->id,
+                ],
+            ]);
         });
 
         return redirect()->route('dashboard')
-            ->with('success', 'Successfully enrolled in ' . $program->name . '!');
+            ->with('success', 'Enrollment request sent for ' . $program->name . '. Waiting for trainer approval.');
     }
 
     /**

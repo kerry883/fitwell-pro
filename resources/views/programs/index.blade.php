@@ -8,11 +8,11 @@
 <div class="space-y-8">
     <!-- Header -->
     <div class="md:flex md:items-center md:justify-between">
-        <div class="min-w-0 flex-1">
+        <div class="min-w-0 flex-1 space-y-1">
             <h2 class="text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:text-3xl sm:tracking-tight">
                 Available Programs
             </h2>
-            <div class="mt-1 flex flex-col sm:mt-0 sm:flex-row sm:flex-wrap sm:space-x-6">
+            <div class="mt-2 flex flex-col sm:mt-0 sm:flex-row sm:flex-wrap sm:space-x-6">
                 <div class="mt-2 flex items-center text-sm text-gray-500">
                     Discover and enroll in fitness programs
                 </div>

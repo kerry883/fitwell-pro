@@ -14,9 +14,9 @@
             </h2>
             <div class="mt-1 flex flex-col sm:mt-0 sm:flex-row sm:flex-wrap sm:space-x-6">
                 <div class="mt-2 flex items-center text-sm text-gray-400">
-                    Welcome, {{ Auth::user()->first_name }} {{ Auth::user()->last_name }}
-                    @if(Auth::user()->adminProfile)
-                        - {{ ucfirst(Auth::user()->adminProfile->admin_level) }}
+                    Welcome, {{ Auth::guard('admin')->user()->first_name }} {{ Auth::guard('admin')->user()->last_name }}
+                    @if(Auth::guard('admin')->user()->adminProfile)
+                        - {{ ucfirst(Auth::guard('admin')->user()->adminProfile->admin_level) }}
                     @endif
                 </div>
             </div>
@@ -39,14 +39,15 @@
                 <div class="flex-shrink-0">
                     <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
                         <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
+                            {{-- <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" /> --}}
+                            <i class="fas fa-users mr-1"></i>
                         </svg>
                     </div>
                 </div>
                 <div class="ml-5 w-0 flex-1">
                     <dl>
                         <dt class="text-sm font-medium text-gray-400 truncate">Total Users</dt>
-                        <dd class="text-lg font-medium text-white">1,247</dd>
+                        <dd class="text-lg font-medium text-white">{{ $userCount }}</dd>
                     </dl>
                 </div>
             </div>

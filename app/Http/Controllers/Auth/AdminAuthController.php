@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Services\AdminActivityLogger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -18,6 +19,18 @@ class AdminAuthController extends Controller
      */
     public function showLoginForm()
     {
+        // If admin is already authenticated, redirect to dashboard
+        if (Auth::guard('admin')->check()) {
+            return redirect('/admin/dashboard');
+        }
+        
+        // If user is authenticated with web guard but not admin, logout from web guard
+        if (Auth::guard('web')->check()) {
+            Auth::guard('web')->logout();
+            request()->session()->invalidate();
+            request()->session()->regenerateToken();
+        }
+        
         return view('auth.admin.login');
     }
 
@@ -26,6 +39,16 @@ class AdminAuthController extends Controller
      */
     public function login(Request $request)
     {
+        // If admin is already authenticated, redirect to dashboard
+        if (Auth::guard('admin')->check()) {
+            return redirect('/admin/dashboard');
+        }
+        
+        // If user is authenticated with web guard, logout from web guard
+        if (Auth::guard('web')->check()) {
+            Auth::guard('web')->logout();
+        }
+        
         $credentials = $request->validate([
             'email' => ['required', 'email'],
             'password' => ['required', 'string'],
@@ -33,39 +56,45 @@ class AdminAuthController extends Controller
 
         // Check if the user exists and is an admin
         $user = User::where('email', $credentials['email'])
-                   ->where('user_type', 'admin')
-                   ->first();
+            ->where('user_type', 'admin')
+            ->first();
 
         if (!$user) {
-            Log::warning('Admin login attempt with invalid email', [
-                'email' => $credentials['email'],
-                'ip' => $request->ip(),
-                'user_agent' => $request->userAgent()
-            ]);
-            
+            AdminActivityLogger::logFailedLogin(
+                $credentials['email'],
+                'Invalid email or user not found',
+                $request
+            );
+
             return back()->withErrors([
                 'email' => 'Invalid administrator credentials.'
             ])->withInput($request->only('email'));
         }
 
-        // Attempt to authenticate
-        if (Auth::attempt(['email' => $credentials['email'], 'password' => $credentials['password']], $request->boolean('remember'))) {
-            $request->session()->regenerate();
+        // Attempt to authenticate using admin guard
+        if (Auth::guard('admin')->attempt(['email' => $credentials['email'], 'password' => $credentials['password']], $request->boolean('remember'))) {
+            // Invalidate and regenerate session to prevent session fixation
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
             
-            Log::info('Admin login successful', [
-                'user_id' => Auth::id(),
-                'email' => Auth::user()->email,
-                'ip' => $request->ip()
-            ]);
+            // Set admin-specific session variables
+            $request->session()->put('admin_guard', true);
+            $request->session()->put('admin_last_activity', now());
+
+            AdminActivityLogger::logLogin(
+                Auth::guard('admin')->id(),
+                Auth::guard('admin')->user()->email,
+                $request
+            );
 
             return redirect()->intended('/admin/dashboard');
         }
 
-        Log::warning('Admin login failed - incorrect password', [
-            'email' => $credentials['email'],
-            'ip' => $request->ip(),
-            'user_agent' => $request->userAgent()
-        ]);
+        AdminActivityLogger::logFailedLogin(
+            $credentials['email'],
+            'Incorrect password',
+            $request
+        );
 
         return back()->withErrors([
             'email' => 'Invalid administrator credentials.'
@@ -117,24 +146,23 @@ class AdminAuthController extends Controller
                 'status' => 'active',
             ]);
 
-            Log::info('New admin account created', [
-                'admin_id' => $user->id,
-                'email' => $user->email,
-                'admin_level' => $request->admin_level,
-                'created_by' => Auth::id(),
-                'ip' => $request->ip()
-            ]);
+            AdminActivityLogger::logRegistration(
+                $user->id,
+                $user->email,
+                $request->admin_level,
+                Auth::id(),
+                $request
+            );
 
             DB::commit();
 
-            // Auto-login the new admin
-            Auth::login($user);
+            // Auto-login the new admin with admin guard
+            Auth::guard('admin')->login($user);
 
             return redirect('/admin/dashboard')->with('success', 'Administrator account created successfully!');
-
         } catch (\Exception $e) {
             DB::rollBack();
-            
+
             Log::error('Admin registration failed', [
                 'email' => $request->email,
                 'error' => $e->getMessage(),
@@ -152,19 +180,24 @@ class AdminAuthController extends Controller
      */
     public function logout(Request $request)
     {
-        $user = Auth::user();
+        $user = Auth::guard('admin')->user();
         
-        Log::info('Admin logout', [
-            'admin_id' => $user->id,
-            'email' => $user->email,
-            'ip' => $request->ip()
-        ]);
+        if ($user) {
+            AdminActivityLogger::logLogout(
+                $user->id,
+                $user->email,
+                $request
+            );
+        }
 
-        Auth::logout();
+        Auth::guard('admin')->logout();
+        
+        // Clear admin-specific session variables
+        $request->session()->forget(['admin_guard', 'admin_last_activity']);
         
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-        
-        return redirect('/admin/login')->with('status', 'Successfully logged out.');
+
+        return redirect()->route('admin.login')->with('status', 'Successfully logged out.');
     }
 }

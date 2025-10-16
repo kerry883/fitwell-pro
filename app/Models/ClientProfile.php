@@ -20,6 +20,7 @@ class ClientProfile extends Model
         'available_days_per_week',
         'preferred_workout_time',
         'workout_duration_preference',
+        'goals',
         'notes',
         'emergency_contact_name',
         'emergency_contact_phone',
@@ -35,6 +36,7 @@ class ClientProfile extends Model
             'medical_conditions' => 'array',
             'injuries' => 'array',
             'preferred_workout_types' => 'array',
+            'goals' => 'array',
             'preferred_workout_time' => 'datetime:H:i',
             'start_date' => 'date',
             'end_date' => 'date',
@@ -47,5 +49,10 @@ class ClientProfile extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function assignments()
+    {
+        return $this->hasMany(ProgramAssignment::class, 'client_id');
     }
 }

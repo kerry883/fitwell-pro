@@ -1,6 +1,6 @@
 @extends('layouts.trainer')
 
-@section('title', 'Program Details: ' . $program['name'])
+@section('title', 'Program Details: ' . $program->name)
 
 @section('content')
 <div class="container-fluid">
@@ -10,25 +10,25 @@
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item"><a href="{{ route('trainer.programs.index') }}">Programs</a></li>
-                    <li class="breadcrumb-item active" aria-current="page">{{ $program['name'] }}</li>
+                    <li class="breadcrumb-item active" aria-current="page">{{ $program->name }}</li>
                 </ol>
             </nav>
-            <h1 class="h3 mb-1">{{ $program['name'] }}</h1>
-            <p class="text-muted mb-0">{{ $program['description'] }}</p>
+            <h1 class="h3 mb-1">{{ $program->name }}</h1>
+            <p class="text-muted mb-0">{{ $program->description }}</p>
         </div>
         <div class="dropdown">
             <button class="btn btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
                 <i class="fas fa-cog me-1"></i> Actions
             </button>
             <ul class="dropdown-menu">
-                <li><a class="dropdown-item" href="{{ route('trainer.programs.edit', $program['id']) }}">
+                <li><a class="dropdown-item" href="{{ route('trainer.programs.edit', $program->id) }}">
                     <i class="fas fa-edit me-2"></i> Edit Program
                 </a></li>
                 <li><a class="dropdown-item" href="#">
                     <i class="fas fa-copy me-2"></i> Duplicate Program
                 </a></li>
                 <li><hr class="dropdown-divider"></li>
-                <li><a class="dropdown-item text-danger" href="#" onclick="deleteProgram({{ $program['id'] }})">
+                <li><a class="dropdown-item text-danger" href="#" onclick="deleteProgram({{ $program->id }})">
                     <i class="fas fa-trash me-2"></i> Delete Program
                 </a></li>
             </ul>
@@ -48,39 +48,39 @@
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <strong class="text-muted">Duration:</strong>
-                                <span class="ms-2">{{ $program['duration'] }} weeks</span>
+                                <span class="ms-2">{{ $program->duration_weeks }} weeks</span>
                             </div>
                             <div class="mb-3">
                                 <strong class="text-muted">Difficulty Level:</strong>
-                                <span class="badge bg-{{ $program['difficulty_color'] }} ms-2">{{ ucfirst($program['difficulty_level']) }}</span>
+                                <span class="badge bg-{{ $program->difficulty_level == 'beginner' ? 'success' : ($program->difficulty_level == 'intermediate' ? 'warning' : 'danger') }} ms-2">{{ ucfirst($program->difficulty_level) }}</span>
                             </div>
                             <div class="mb-3">
                                 <strong class="text-muted">Program Type:</strong>
-                                <span class="ms-2">{{ ucfirst(str_replace('_', ' ', $program['program_type'])) }}</span>
+                                <span class="ms-2">{{ ucfirst(str_replace('_', ' ', $program->program_type)) }}</span>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <strong class="text-muted">Sessions per Week:</strong>
-                                <span class="ms-2">{{ $program['sessions_per_week'] }}</span>
+                                <span class="ms-2">{{ $program->sessions_per_week }}</span>
                             </div>
                             <div class="mb-3">
-                                <strong class="text-muted">Equipment Needed:</strong>
-                                <span class="ms-2">{{ $program['equipment_needed'] ? 'Yes' : 'No' }}</span>
+                                <strong class="text-muted">Status:</strong>
+                                <span class="badge bg-{{ $program->status == 'published' ? 'success' : ($program->status == 'draft' ? 'secondary' : 'warning') }} ms-2">{{ ucfirst($program->status) }}</span>
                             </div>
                             <div class="mb-3">
                                 <strong class="text-muted">Active Clients:</strong>
-                                <span class="ms-2">{{ $program['active_clients'] ?? 0 }}</span>
+                                <span class="ms-2">{{ $program->assignments()->where('status', 'active')->count() }}</span>
                             </div>
                         </div>
                     </div>
-                    
-                    @if($program['objectives'])
+
+                    @if($program->goals)
                     <div class="mt-4">
-                        <strong class="text-muted">Program Objectives:</strong>
+                        <strong class="text-muted">Program Goals:</strong>
                         <ul class="mt-2">
-                            @foreach($program['objectives'] as $objective)
-                            <li>{{ $objective }}</li>
+                            @foreach($program->goals as $goal)
+                            <li>{{ $goal }}</li>
                             @endforeach
                         </ul>
                     </div>
@@ -92,75 +92,45 @@
             <div class="card shadow-sm mb-4">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">Workout Schedule</h5>
-                    <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#addWorkoutModal">
+                    <a href="{{ route('trainer.programs.workouts.create', $program->id) }}" class="btn btn-sm btn-outline-primary">
                         <i class="fas fa-plus me-1"></i> Add Workout
-                    </button>
+                    </a>
                 </div>
                 <div class="card-body">
-                    @if(isset($program['workouts']) && count($program['workouts']))
-                        <div class="accordion" id="workoutAccordion">
-                            @foreach($program['workouts'] as $index => $workout)
-                            <div class="accordion-item mb-3">
-                                <h2 class="accordion-header" id="heading{{ $index }}">
-                                    <button class="accordion-button {{ $index > 0 ? 'collapsed' : '' }}" type="button" 
-                                            data-bs-toggle="collapse" data-bs-target="#collapse{{ $index }}" 
-                                            aria-expanded="{{ $index === 0 ? 'true' : 'false' }}">
-                                        <div class="d-flex justify-content-between w-100 me-3">
-                                            <div>
-                                                <strong>Week {{ $workout['week'] }}, Day {{ $workout['day'] }}: {{ $workout['title'] }}</strong>
-                                                <div class="text-muted small">{{ $workout['duration'] ?? 60 }} minutes</div>
-                                            </div>
-                                            <div class="text-end">
-                                                <span class="badge bg-primary">{{ count($workout['exercises']) }} exercises</span>
-                                            </div>
-                                        </div>
-                                    </button>
-                                </h2>
-                                <div id="collapse{{ $index }}" class="accordion-collapse collapse {{ $index === 0 ? 'show' : '' }}" 
-                                     data-bs-parent="#workoutAccordion">
-                                    <div class="accordion-body">
-                                        <div class="row">
-                                            <div class="col-md-8">
-                                                <h6>Exercises:</h6>
-                                                <div class="table-responsive">
-                                                    <table class="table table-sm">
-                                                        <thead>
-                                                            <tr>
-                                                                <th>Exercise</th>
-                                                                <th>Sets</th>
-                                                                <th>Reps</th>
-                                                                <th>Rest</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                            @foreach($workout['exercises'] as $exercise)
-                                                            <tr>
-                                                                <td>{{ $exercise['name'] }}</td>
-                                                                <td>{{ $exercise['sets'] }}</td>
-                                                                <td>{{ $exercise['reps'] }}</td>
-                                                                <td>{{ $exercise['rest'] }}</td>
-                                                            </tr>
-                                                            @endforeach
-                                                        </tbody>
-                                                    </table>
-                                                </div>
-                                            </div>
-                                            <div class="col-md-4">
-                                                @if($workout['notes'])
-                                                <h6>Notes:</h6>
-                                                <p class="text-muted small">{{ $workout['notes'] }}</p>
-                                                @endif
-                                                
-                                                @if($workout['focus_areas'])
-                                                <h6>Focus Areas:</h6>
-                                                <div class="d-flex flex-wrap gap-1">
-                                                    @foreach($workout['focus_areas'] as $area)
-                                                    <span class="badge bg-light text-dark">{{ $area }}</span>
-                                                    @endforeach
-                                                </div>
-                                                @endif
-                                            </div>
-                                        </div>
+                    @if($program->workouts && $program->workouts->count())
+                        <div class="list-group">
+                            @foreach($program->workouts->sortBy('workout_date') as $workout)
+                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1">{{ $workout->name }}</h6>
+                                    <p class="mb-1 text-muted small">
+                                        {{ ucfirst($workout->type) }} • {{ ucfirst($workout->difficulty) }} •
+                                        {{ $workout->workout_date->format('M j, Y') }}
+                                        @if($workout->duration_minutes)
+                                            • {{ $workout->duration_minutes }} minutes
+                                        @endif
+                                    </p>
+                                    @if($workout->description)
+                                        <p class="mb-0 text-muted small">{{ Str::limit($workout->description, 100) }}</p>
+                                    @endif
+                                </div>
+                                <div class="d-flex gap-2">
+                                    <span class="badge bg-{{ $workout->status == 'completed' ? 'success' : ($workout->status == 'in_progress' ? 'warning' : 'secondary') }}">
+                                        {{ ucfirst(str_replace('_', ' ', $workout->status)) }}
+                                    </span>
+                                    <div class="dropdown">
+                                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                            <i class="fas fa-ellipsis-v"></i>
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <li><a class="dropdown-item" href="{{ route('trainer.programs.workouts.edit', [$program->id, $workout->id]) }}">
+                                                <i class="fas fa-edit me-2"></i> Edit
+                                            </a></li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li><a class="dropdown-item text-danger" href="#" onclick="deleteWorkout({{ $workout->id }})">
+                                                <i class="fas fa-trash me-2"></i> Delete
+                                            </a></li>
+                                        </ul>
                                     </div>
                                 </div>
                             </div>
@@ -171,9 +141,9 @@
                             <i class="fas fa-dumbbell fa-3x text-muted mb-3"></i>
                             <h5 class="text-muted">No workouts added yet</h5>
                             <p class="text-muted">Start building your program by adding workouts</p>
-                            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addWorkoutModal">
+                            <a href="{{ route('trainer.programs.workouts.create', $program->id) }}" class="btn btn-primary">
                                 <i class="fas fa-plus me-1"></i> Add First Workout
-                            </button>
+                            </a>
                         </div>
                     @endif
                 </div>
@@ -185,25 +155,25 @@
                     <h5 class="mb-0">Client Progress</h5>
                 </div>
                 <div class="card-body">
-                    @if(isset($program['client_progress']) && count($program['client_progress']))
+                    @if($assignedClients && count($assignedClients))
                         <div class="row">
-                            @foreach($program['client_progress'] as $progress)
+                            @foreach($assignedClients as $client)
                             <div class="col-md-6 mb-3">
                                 <div class="d-flex align-items-center">
                                     <div class="avatar-sm me-2">
                                         <span class="avatar-initials bg-primary text-white">
-                                            {{ substr($progress['client_name'], 0, 2) }}
+                                            {{ substr($client['name'], 0, 2) }}
                                         </span>
                                     </div>
                                     <div class="flex-grow-1">
                                         <div class="d-flex justify-content-between">
-                                            <strong>{{ $progress['client_name'] }}</strong>
-                                            <span class="text-muted">{{ $progress['completion'] }}%</span>
+                                            <strong>{{ $client['name'] }}</strong>
+                                            <span class="text-muted">{{ $client['progress'] }}%</span>
                                         </div>
                                         <div class="progress mt-1" style="height: 6px;">
-                                            <div class="progress-bar bg-success" style="width: {{ $progress['completion'] }}%"></div>
+                                            <div class="progress-bar bg-success" style="width: {{ $client['progress'] }}%"></div>
                                         </div>
-                                        <small class="text-muted">Week {{ $progress['current_week'] }} of {{ $program['duration'] }}</small>
+                                        <small class="text-muted">Week {{ $client['current_week'] }} of {{ $program->duration_weeks }}</small>
                                     </div>
                                 </div>
                             </div>
@@ -229,23 +199,23 @@
                 <div class="card-body">
                     <div class="row text-center">
                         <div class="col-6">
-                            <h4 class="text-primary mb-0">{{ $program['active_clients'] ?? 0 }}</h4>
+                            <h4 class="text-primary mb-0">{{ $program->assignments()->where('status', 'active')->count() }}</h4>
                             <small class="text-muted">Active Clients</small>
                         </div>
                         <div class="col-6">
-                            <h4 class="text-success mb-0">{{ $program['completion_rate'] ?? 0 }}%</h4>
+                            <h4 class="text-success mb-0">{{ $program->assignments()->avg('progress_percentage') ?: 0 }}%</h4>
                             <small class="text-muted">Avg Completion</small>
                         </div>
                     </div>
                     <hr>
                     <div class="row text-center">
                         <div class="col-6">
-                            <h4 class="text-info mb-0">{{ count($program['workouts'] ?? []) }}</h4>
+                            <h4 class="text-info mb-0">{{ $program->workouts ? $program->workouts->count() : 0 }}</h4>
                             <small class="text-muted">Total Workouts</small>
                         </div>
                         <div class="col-6">
-                            <h4 class="text-warning mb-0">4.8</h4>
-                            <small class="text-muted">Rating</small>
+                            <h4 class="text-warning mb-0">{{ $program->assignments()->count() }}</h4>
+                            <small class="text-muted">Total Assignments</small>
                         </div>
                     </div>
                 </div>
@@ -258,7 +228,7 @@
                 </div>
                 <div class="card-body">
                     <div class="d-grid gap-2">
-                        <a href="{{ route('trainer.programs.edit', $program['id']) }}" class="btn btn-outline-primary">
+                        <a href="{{ route('trainer.programs.edit', $program->id) }}" class="btn btn-outline-primary">
                             <i class="fas fa-edit me-2"></i> Edit Program
                         </a>
                         <button class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#assignClientModal">
@@ -280,15 +250,15 @@
                     <h5 class="mb-0">Recent Activity</h5>
                 </div>
                 <div class="card-body">
-                    @if(isset($program['recent_activity']) && count($program['recent_activity']))
+                    @if($program->assignments && $program->assignments->count())
                         <div class="timeline">
-                            @foreach($program['recent_activity'] as $activity)
+                            @foreach($program->assignments->take(5) as $assignment)
                             <div class="timeline-item mb-3">
                                 <div class="timeline-marker bg-primary"></div>
                                 <div class="timeline-content">
-                                    <h6 class="mb-1">{{ $activity['title'] }}</h6>
-                                    <p class="text-muted mb-1">{{ $activity['description'] }}</p>
-                                    <small class="text-muted">{{ $activity['time_ago'] }}</small>
+                                    <h6 class="mb-1">{{ $assignment->user->name }} assigned</h6>
+                                    <p class="text-muted mb-1">Started the program</p>
+                                    <small class="text-muted">{{ $assignment->assigned_date->diffForHumans() }}</small>
                                 </div>
                             </div>
                             @endforeach
@@ -362,6 +332,29 @@ function deleteProgram(programId) {
     if (confirm('Are you sure you want to delete this program? This action cannot be undone.')) {
         // Add delete logic here
         alert('Delete functionality to be implemented');
+    }
+}
+
+function deleteWorkout(workoutId) {
+    if (confirm('Are you sure you want to delete this workout? This action cannot be undone.')) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '{{ route("trainer.programs.workouts.destroy", [$program->id, ":workoutId"]) }}'.replace(':workoutId', workoutId);
+
+        const csrfToken = document.createElement('input');
+        csrfToken.type = 'hidden';
+        csrfToken.name = '_token';
+        csrfToken.value = '{{ csrf_token() }}';
+
+        const methodField = document.createElement('input');
+        methodField.type = 'hidden';
+        methodField.name = '_method';
+        methodField.value = 'DELETE';
+
+        form.appendChild(csrfToken);
+        form.appendChild(methodField);
+        document.body.appendChild(form);
+        form.submit();
     }
 }
 </script>

@@ -118,6 +118,23 @@ class User extends Authenticatable
     {
         return $this->user_type === 'admin';
     }
+    
+    /**
+     * Verify admin has proper privileges and active status
+     */
+    public function hasAdminPrivileges()
+    {
+        if (!$this->isAdmin()) {
+            return false;
+        }
+        
+        // Check if admin profile exists and is active
+        if (!$this->adminProfile || $this->adminProfile->status !== 'active') {
+            return false;
+        }
+        
+        return true;
+    }
 
     public function isTrainer()
     {

@@ -87,14 +87,14 @@
                                 <span class="sr-only">Open admin menu</span>
                                 <div class="h-8 w-8 rounded-full bg-red-500 flex items-center justify-center">
                                     <span class="text-xs font-bold text-white">
-                                        {{ strtoupper(substr(Auth::user()->first_name ?? 'A', 0, 1)) }}{{ strtoupper(substr(Auth::user()->last_name ?? 'D', 0, 1)) }}
+                                        {{ strtoupper(substr(Auth::guard('admin')->user()->first_name ?? 'A', 0, 1)) }}{{ strtoupper(substr(Auth::guard('admin')->user()->last_name ?? 'D', 0, 1)) }}
                                     </span>
                                 </div>
                                 <span class="hidden lg:flex lg:items-center">
                                     <span class="ml-4 text-sm font-semibold leading-6 text-white">
-                                        {{ Auth::user()->first_name ?? 'Admin' }} {{ Auth::user()->last_name ?? 'User' }}
-                                        @if(Auth::user()->adminProfile)
-                                            <span class="block text-xs text-gray-400">{{ ucfirst(Auth::user()->adminProfile->admin_level) }}</span>
+                                        {{ Auth::guard('admin')->user()->first_name ?? 'Admin' }} {{ Auth::guard('admin')->user()->last_name ?? 'User' }}
+                                        @if(Auth::guard('admin')->user()->adminProfile)
+                                            <span class="block text-xs text-gray-400">{{ ucfirst(Auth::guard('admin')->user()->adminProfile->admin_level) }}</span>
                                         @endif
                                     </span>
                                     <svg class="ml-2 h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">

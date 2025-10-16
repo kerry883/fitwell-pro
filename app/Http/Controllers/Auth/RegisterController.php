@@ -81,7 +81,7 @@ class RegisterController extends Controller
                 'fitness_level' => $request->fitness_level,
                 'activity_level' => $request->activity_level ?? 'moderately_active',
                 'fitness_goals' => $request->fitness_goals,
-                'email_verified_at' => now(), // Auto-verify for now
+                'email_verified_at' => null, // Will be set after OTP verification
             ]);
 
             // Create appropriate profile based on user type
@@ -119,13 +119,19 @@ class RegisterController extends Controller
                 'ip' => $request->ip()
             ]);
 
-            Auth::login($user);
+            // Redirect to OTP verification for clients and trainers only
+            if ($user->user_type === 'admin') {
+                // Admins skip OTP verification
+                $user->update(['email_verified_at' => now()]);
+                Auth::login($user);
+                return redirect()->route('admin.dashboard')->with('success', 'Admin registration successful!');
+            }
 
-            $message = $user->user_type === 'trainer' 
-                ? 'Registration successful! Your trainer account is pending approval. You\'ll be notified once approved.'
-                : 'Registration successful! Welcome to FitWell Pro.';
-
-            return redirect('/dashboard')->with('success', $message);
+            // Redirect to OTP verification page
+            return redirect()->route('verify.otp.form', [
+                'user_id' => $user->id,
+                'email' => $user->email
+            ])->with('success', 'Registration successful! Please check your email for the verification code.');
 
         } catch (\Exception $e) {
             \DB::rollBack();

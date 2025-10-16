@@ -389,11 +389,11 @@
                         Connect with certified personal trainers, get personalized workout plans, and achieve your goals with our comprehensive fitness platform.
                     </p>
 
-                    <!-- CTA Buttons -->
+                    <!-- CTA Buttons --> 
                     <div class="flex flex-wrap gap-4 mb-6">
-                        <button class="bg-gradient-to-r from-green-500 to-cyan-500 text-white px-8 py-4 text-lg font-semibold rounded-full hover:from-green-600 hover:to-cyan-600 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1" @click="startQuiz">
-                            <i class="fas fa-play-circle mr-2"></i>Start Free Assessment
-                        </button>
+                        <a href="{{ route('register') }}" class="bg-gradient-to-r from-green-500 to-cyan-500 text-white px-8 py-4 text-lg font-semibold rounded-full hover:from-green-600 hover:to-cyan-600 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+                            <i class="fas fa-play-circle mr-2"></i>Get Started Now
+                        </a>
                         <a href="#how-it-works" class="border-2 border-white text-white px-8 py-4 text-lg font-semibold rounded-full hover:bg-white hover:text-green-600 transition-all duration-300">
                             <i class="fas fa-arrow-down mr-2"></i>Learn More
                         </a>
@@ -407,19 +407,28 @@
                         </small>
                     </div>
 
-                    <!-- Animated Statistics -->
+                    <!-- Enhanced Animated Statistics -->
                     <div class="grid grid-cols-3 gap-4 text-center text-white mt-8">
-                        <div>
-                            <div class="stats-counter text-3xl font-bold" x-text="activeUsers">0</div>
-                            <small class="block opacity-75">Active Users</small>
+                        <div class="group cursor-pointer transform transition-all duration-300 hover:scale-105" @click="animateCounters()">
+                            <div class="stats-counter text-3xl font-bold mb-2 transition-all duration-1000 ease-out" x-text="activeUsers" x-transition:enter="animate-pulse">0</div>
+                            <small class="block opacity-75 group-hover:opacity-100 transition-opacity">Active Users</small>
+                            <div class="w-full bg-white/20 rounded-full h-1 mt-2 overflow-hidden">
+                                <div class="h-full bg-yellow-400 transition-all duration-2000 ease-out" :style="`width: ${Math.min((activeUsers/2500)*100, 100)}%`"></div>
+                            </div>
                         </div>
-                        <div>
-                            <div class="stats-counter text-3xl font-bold" x-text="trainers">0</div>
-                            <small class="block opacity-75">Expert Trainers</small>
+                        <div class="group cursor-pointer transform transition-all duration-300 hover:scale-105" @click="animateCounters()">
+                            <div class="stats-counter text-3xl font-bold mb-2 transition-all duration-1000 ease-out" x-text="trainers" x-transition:enter="animate-pulse">0</div>
+                            <small class="block opacity-75 group-hover:opacity-100 transition-opacity">Expert Trainers</small>
+                            <div class="w-full bg-white/20 rounded-full h-1 mt-2 overflow-hidden">
+                                <div class="h-full bg-yellow-400 transition-all duration-2000 ease-out" :style="`width: ${Math.min((trainers/150)*100, 100)}%`"></div>
+                            </div>
                         </div>
-                        <div>
-                            <div class="stats-counter text-3xl font-bold" x-text="successRate + '%'">0</div>
-                            <small class="block opacity-75">Success Rate</small>
+                        <div class="group cursor-pointer transform transition-all duration-300 hover:scale-105" @click="animateCounters()">
+                            <div class="stats-counter text-3xl font-bold mb-2 transition-all duration-1000 ease-out" x-text="successRate + '%'" x-transition:enter="animate-pulse">0</div>
+                            <small class="block opacity-75 group-hover:opacity-100 transition-opacity">Success Rate</small>
+                            <div class="w-full bg-white/20 rounded-full h-1 mt-2 overflow-hidden">
+                                <div class="h-full bg-yellow-400 transition-all duration-2000 ease-out" :style="`width: ${successRate}%`"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -459,7 +468,7 @@
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                <!-- Enhanced feature cards with hover effects -->
+                <!-- Enhanced feature cards with interactive demos -->
                 <div data-aos="fade-up" data-aos-delay="100">
                     <div class="bg-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 hover:border-green-200 group h-full">
                         <div class="w-20 h-20 bg-gradient-to-r from-green-500 to-cyan-500 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
@@ -467,9 +476,53 @@
                         </div>
                         <h5 class="text-center mb-4 text-xl font-semibold">Certified Trainers</h5>
                         <p class="text-gray-600 text-center mb-6">Connect with vetted fitness professionals who create personalized plans.</p>
-                        <button class="bg-transparent border border-green-500 text-green-500 px-6 py-2 rounded-full hover:bg-green-500 hover:text-white transition-all duration-300 block mx-auto text-sm font-medium" @click="showFeatureDemo('trainers')">
-                            <i class="fas fa-play-circle mr-2"></i>See Demo
-                        </button>
+
+                        <!-- Interactive Demo -->
+                        <div class="bg-gray-50 rounded-lg p-4 mb-4" x-data="{ showDemo: false, selectedTrainer: null, trainers: [
+                            { id: 1, name: 'Sarah Johnson', specialty: 'Strength Training', rating: 5, experience: 8, image: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=80&h=80&fit=crop&crop=face' },
+                            { id: 2, name: 'Mike Chen', specialty: 'Cardio & Endurance', rating: 5, experience: 6, image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&crop=face' },
+                            { id: 3, name: 'Emma Wilson', specialty: 'Yoga & Flexibility', rating: 5, experience: 10, image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=80&h=80&fit=crop&crop=face' }
+                        ] }">
+                            <button @click="showDemo = !showDemo" class="bg-transparent border border-green-500 text-green-500 px-6 py-2 rounded-full hover:bg-green-500 hover:text-white transition-all duration-300 block mx-auto text-sm font-medium">
+                                <i class="fas fa-play-circle mr-2"></i><span x-text="showDemo ? 'Hide Demo' : 'See Demo'"></span>
+                            </button>
+
+                            <div x-show="showDemo" x-transition class="mt-4">
+                                <div class="space-y-3">
+                                    <h6 class="font-semibold text-gray-800 mb-3">Available Trainers</h6>
+                                    <template x-for="trainer in trainers" :key="trainer.id">
+                                        <div class="flex items-center p-3 bg-white rounded-lg border hover:border-green-300 cursor-pointer transition-all duration-200"
+                                             @click="selectedTrainer = selectedTrainer === trainer.id ? null : trainer.id">
+                                            <img :src="trainer.image" :alt="trainer.name" class="w-10 h-10 rounded-full mr-3">
+                                            <div class="flex-1">
+                                                <div class="font-medium text-sm" x-text="trainer.name"></div>
+                                                <div class="text-xs text-gray-500" x-text="trainer.specialty"></div>
+                                            </div>
+                                            <div class="text-right">
+                                                <div class="flex items-center text-xs">
+                                                    <span class="text-yellow-400 mr-1">★</span>
+                                                    <span x-text="trainer.rating"></span>
+                                                </div>
+                                                <div class="text-xs text-gray-500" x-text="trainer.experience + ' yrs'"></div>
+                                            </div>
+                                        </div>
+                                    </template>
+
+                                    <div x-show="selectedTrainer" x-transition class="mt-4 p-4 bg-green-50 rounded-lg border border-green-200">
+                                        <div class="flex items-center justify-between mb-2">
+                                            <span class="font-medium text-green-800">Trainer Selected!</span>
+                                            <button @click="selectedTrainer = null" class="text-green-600 hover:text-green-800">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </div>
+                                        <p class="text-sm text-green-700">Your personalized training plan will be created based on this trainer's expertise. Ready to get started?</p>
+                                        <button class="mt-3 bg-green-600 text-white px-4 py-2 rounded-full text-sm hover:bg-green-700 transition-colors">
+                                            Book Session
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -480,9 +533,64 @@
                         </div>
                         <h5 class="text-center mb-4 text-xl font-semibold">Progress Analytics</h5>
                         <p class="text-gray-600 text-center mb-6">Track your journey with detailed metrics and insights.</p>
-                        <button class="bg-transparent border border-green-500 text-green-500 px-6 py-2 rounded-full hover:bg-green-500 hover:text-white transition-all duration-300 block mx-auto text-sm font-medium" @click="showFeatureDemo('analytics')">
-                            <i class="fas fa-play-circle mr-2"></i>See Demo
-                        </button>
+
+                        <!-- Interactive Demo -->
+                        <div class="bg-gray-50 rounded-lg p-4 mb-4" x-data="{ showDemo: false, progressData: [
+                            { week: 1, weight: 185, workouts: 2, calories: 2100 },
+                            { week: 2, weight: 182, workouts: 3, calories: 2050 },
+                            { week: 3, weight: 179, workouts: 4, calories: 2000 },
+                            { week: 4, weight: 176, workouts: 4, calories: 1950 }
+                        ] }">
+                            <button @click="showDemo = !showDemo" class="bg-transparent border border-green-500 text-green-500 px-6 py-2 rounded-full hover:bg-green-500 hover:text-white transition-all duration-300 block mx-auto text-sm font-medium">
+                                <i class="fas fa-play-circle mr-2"></i><span x-text="showDemo ? 'Hide Demo' : 'See Demo'"></span>
+                            </button>
+
+                            <div x-show="showDemo" x-transition class="mt-4">
+                                <div class="space-y-4">
+                                    <h6 class="font-semibold text-gray-800 mb-3">Your Progress Dashboard</h6>
+
+                                    <!-- Progress Chart Simulation -->
+                                    <div class="bg-white p-4 rounded-lg border">
+                                        <div class="flex justify-between items-center mb-3">
+                                            <span class="text-sm font-medium">Weight Progress</span>
+                                            <span class="text-xs text-green-600">-9 lbs this month</span>
+                                        </div>
+                                        <div class="flex items-end space-x-2 h-20">
+                                            <template x-for="data in progressData" :key="data.week">
+                                                <div class="flex-1 bg-green-200 rounded-t flex items-end justify-center pb-1"
+                                                     :style="`height: ${(data.weight - 170) * 4}px`">
+                                                    <span class="text-xs text-gray-600 font-medium" x-text="data.weight"></span>
+                                                </div>
+                                            </template>
+                                        </div>
+                                        <div class="flex justify-between mt-2 text-xs text-gray-500">
+                                            <span>Week 1</span>
+                                            <span>Week 2</span>
+                                            <span>Week 3</span>
+                                            <span>Week 4</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Stats Grid -->
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <div class="bg-white p-3 rounded-lg border text-center">
+                                            <div class="text-lg font-bold text-blue-600" x-text="progressData[progressData.length-1].workouts">4</div>
+                                            <div class="text-xs text-gray-500">Workouts/Week</div>
+                                        </div>
+                                        <div class="bg-white p-3 rounded-lg border text-center">
+                                            <div class="text-lg font-bold text-green-600" x-text="progressData[progressData.length-1].calories">1950</div>
+                                            <div class="text-xs text-gray-500">Daily Calories</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="text-center">
+                                        <button class="bg-blue-600 text-white px-4 py-2 rounded-full text-sm hover:bg-blue-700 transition-colors">
+                                            View Full Analytics
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -493,9 +601,58 @@
                         </div>
                         <h5 class="text-center mb-4 text-xl font-semibold">Smart Scheduling</h5>
                         <p class="text-gray-600 text-center mb-6">Flexible booking system that adapts to your lifestyle.</p>
-                        <button class="bg-transparent border border-green-500 text-green-500 px-6 py-2 rounded-full hover:bg-green-500 hover:text-white transition-all duration-300 block mx-auto text-sm font-medium" @click="showFeatureDemo('scheduling')">
-                            <i class="fas fa-play-circle mr-2"></i>See Demo
-                        </button>
+
+                        <!-- Interactive Demo -->
+                        <div class="bg-gray-50 rounded-lg p-4 mb-4" x-data="{ showDemo: false, selectedTime: null, availableSlots: [
+                            { time: '9:00 AM', available: true },
+                            { time: '10:30 AM', available: true },
+                            { time: '2:00 PM', available: false },
+                            { time: '3:30 PM', available: true },
+                            { time: '5:00 PM', available: true },
+                            { time: '6:30 PM', available: false }
+                        ] }">
+                            <button @click="showDemo = !showDemo" class="bg-transparent border border-green-500 text-green-500 px-6 py-2 rounded-full hover:bg-green-500 hover:text-white transition-all duration-300 block mx-auto text-sm font-medium">
+                                <i class="fas fa-play-circle mr-2"></i><span x-text="showDemo ? 'Hide Demo' : 'See Demo'"></span>
+                            </button>
+
+                            <div x-show="showDemo" x-transition class="mt-4">
+                                <div class="space-y-4">
+                                    <h6 class="font-semibold text-gray-800 mb-3">Book Your Next Session</h6>
+                                    <div class="bg-white p-4 rounded-lg border">
+                                        <div class="flex items-center mb-3">
+                                            <i class="fas fa-calendar text-green-600 mr-2"></i>
+                                            <span class="font-medium">Tomorrow - Sarah Johnson</span>
+                                        </div>
+                                        <div class="grid grid-cols-2 gap-2">
+                                            <template x-for="slot in availableSlots" :key="slot.time">
+                                                <button @click="selectedTime = slot.time"
+                                                        :class="slot.available ? (selectedTime === slot.time ? 'bg-green-600 text-white' : 'bg-green-50 text-green-700 hover:bg-green-100') : 'bg-gray-100 text-gray-400 cursor-not-allowed'"
+                                                        :disabled="!slot.available"
+                                                        class="p-2 rounded text-sm font-medium transition-colors"
+                                                        x-text="slot.time">
+                                                </button>
+                                            </template>
+                                        </div>
+                                    </div>
+
+                                    <div x-show="selectedTime" x-transition class="p-4 bg-green-50 rounded-lg border border-green-200">
+                                        <div class="flex items-center justify-between mb-2">
+                                            <span class="font-medium text-green-800">Session Booked!</span>
+                                            <button @click="selectedTime = null" class="text-green-600 hover:text-green-800">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </div>
+                                        <p class="text-sm text-green-700 mb-2">
+                                            Your session is scheduled for <strong x-text="selectedTime"></strong> tomorrow.
+                                        </p>
+                                        <div class="flex items-center text-sm text-green-600">
+                                            <i class="fas fa-bell mr-2"></i>
+                                            Reminder will be sent 1 hour before
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -506,9 +663,51 @@
                         </div>
                         <h5 class="text-center mb-4 text-xl font-semibold">24/7 Support</h5>
                         <p class="text-gray-600 text-center mb-6">Get guidance whenever you need it with our chat system.</p>
-                        <button class="bg-transparent border border-green-500 text-green-500 px-6 py-2 rounded-full hover:bg-green-500 hover:text-white transition-all duration-300 block mx-auto text-sm font-medium" @click="showFeatureDemo('support')">
-                            <i class="fas fa-play-circle mr-2"></i>See Demo
-                        </button>
+
+                        <!-- Interactive Demo -->
+                        <div class="bg-gray-50 rounded-lg p-4 mb-4" x-data="{ showDemo: false, messages: [
+                            { type: 'trainer', text: 'Hi! How can I help you today?', time: '2:30 PM' },
+                            { type: 'user', text: 'I need help with my workout plan', time: '2:31 PM' },
+                            { type: 'trainer', text: 'Sure! What specific goals are you working towards?', time: '2:32 PM' }
+                        ], newMessage: '' }">
+                            <button @click="showDemo = !showDemo" class="bg-transparent border border-green-500 text-green-500 px-6 py-2 rounded-full hover:bg-green-500 hover:text-white transition-all duration-300 block mx-auto text-sm font-medium">
+                                <i class="fas fa-play-circle mr-2"></i><span x-text="showDemo ? 'Hide Demo' : 'See Demo'"></span>
+                            </button>
+
+                            <div x-show="showDemo" x-transition class="mt-4">
+                                <div class="bg-white border rounded-lg p-4 max-h-48 overflow-y-auto">
+                                    <div class="space-y-3">
+                                        <template x-for="message in messages" :key="message.time">
+                                            <div :class="message.type === 'user' ? 'flex justify-end' : 'flex justify-start'">
+                                                <div :class="message.type === 'user' ? 'bg-green-600 text-white' : 'bg-gray-100 text-gray-800'"
+                                                     class="max-w-xs px-3 py-2 rounded-lg text-sm">
+                                                    <div x-text="message.text"></div>
+                                                    <div :class="message.type === 'user' ? 'text-green-100' : 'text-gray-500'"
+                                                         class="text-xs mt-1" x-text="message.time"></div>
+                                                </div>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+
+                                <div class="mt-3 flex space-x-2">
+                                    <input x-model="newMessage"
+                                           @keydown.enter="if(newMessage.trim()) { messages.push({type: 'user', text: newMessage, time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}); newMessage = '' }"
+                                           type="text"
+                                           placeholder="Type your message..."
+                                           class="flex-1 px-3 py-2 border border-gray-300 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-green-500">
+                                    <button @click="if(newMessage.trim()) { messages.push({type: 'user', text: newMessage, time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}); newMessage = '' }"
+                                            class="bg-green-600 text-white px-4 py-2 rounded-full hover:bg-green-700 transition-colors">
+                                        <i class="fas fa-paper-plane"></i>
+                                    </button>
+                                </div>
+
+                                <div class="mt-2 text-xs text-gray-500 text-center">
+                                    <i class="fas fa-circle text-green-500 mr-1"></i>
+                                    Sarah is online now
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -519,9 +718,55 @@
                         </div>
                         <h5 class="text-center mb-4 text-xl font-semibold">Nutrition Plans</h5>
                         <p class="text-gray-600 text-center mb-6">Personalized meal plans to complement your training.</p>
-                        <button class="bg-transparent border border-green-500 text-green-500 px-6 py-2 rounded-full hover:bg-green-500 hover:text-white transition-all duration-300 block mx-auto text-sm font-medium" @click="showFeatureDemo('nutrition')">
-                            <i class="fas fa-play-circle mr-2"></i>See Demo
-                        </button>
+
+                        <!-- Interactive Demo -->
+                        <div class="bg-gray-50 rounded-lg p-4 mb-4" x-data="{ showDemo: false, selectedMeal: null, meals: [
+                            { name: 'Breakfast', items: ['Oatmeal with berries', 'Greek yogurt', 'Banana'], calories: 450 },
+                            { name: 'Lunch', items: ['Grilled chicken salad', 'Quinoa', 'Avocado'], calories: 520 },
+                            { name: 'Dinner', items: ['Salmon fillet', 'Sweet potato', 'Broccoli'], calories: 480 }
+                        ] }">
+                            <button @click="showDemo = !showDemo" class="bg-transparent border border-green-500 text-green-500 px-6 py-2 rounded-full hover:bg-green-500 hover:text-white transition-all duration-300 block mx-auto text-sm font-medium">
+                                <i class="fas fa-play-circle mr-2"></i><span x-text="showDemo ? 'Hide Demo' : 'See Demo'"></span>
+                            </button>
+
+                            <div x-show="showDemo" x-transition class="mt-4">
+                                <div class="space-y-4">
+                                    <h6 class="font-semibold text-gray-800 mb-3">Today's Meal Plan</h6>
+
+                                    <template x-for="meal in meals" :key="meal.name">
+                                        <div class="bg-white p-4 rounded-lg border cursor-pointer hover:border-green-300 transition-colors"
+                                             @click="selectedMeal = selectedMeal === meal ? null : meal">
+                                            <div class="flex justify-between items-center mb-2">
+                                                <span class="font-medium" x-text="meal.name"></span>
+                                                <span class="text-sm text-gray-500" x-text="meal.calories + ' cal'"></span>
+                                            </div>
+                                            <div x-show="selectedMeal === meal" x-transition class="mt-2 pt-2 border-t">
+                                                <ul class="text-sm text-gray-600 space-y-1">
+                                                    <template x-for="item in meal.items" :key="item">
+                                                        <li class="flex items-center">
+                                                            <i class="fas fa-check text-green-500 mr-2 text-xs"></i>
+                                                            <span x-text="item"></span>
+                                                        </li>
+                                                    </template>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </template>
+
+                                    <div class="bg-green-50 p-4 rounded-lg border border-green-200">
+                                        <div class="flex items-center justify-between">
+                                            <div>
+                                                <div class="font-medium text-green-800">Daily Total</div>
+                                                <div class="text-sm text-green-600">1,450 calories • 120g protein</div>
+                                            </div>
+                                            <button class="bg-green-600 text-white px-4 py-2 rounded-full text-sm hover:bg-green-700 transition-colors">
+                                                Customize Plan
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -532,9 +777,52 @@
                         </div>
                         <h5 class="text-center mb-4 text-xl font-semibold">Video Assessment</h5>
                         <p class="text-gray-600 text-center mb-6">Get personalized fitness plans through video assessment with our expert trainers.</p>
-                        <button class="bg-transparent border border-green-500 text-green-500 px-6 py-2 rounded-full hover:bg-green-500 hover:text-white transition-all duration-300 block mx-auto text-sm font-medium" @click="showFeatureDemo('assessment')">
-                            <i class="fas fa-play-circle mr-2"></i>See Demo
-                        </button>
+
+                        <!-- Interactive Demo -->
+                        <div class="bg-gray-50 rounded-lg p-4 mb-4" x-data="{ showDemo: false, assessmentStep: 1, assessmentSteps: [
+                            { title: 'Record Your Assessment', description: 'Show us your current fitness level with a short video' },
+                            { title: 'AI Analysis', description: 'Our system analyzes your form and movement patterns' },
+                            { title: 'Personalized Plan', description: 'Receive a custom workout plan tailored to your needs' }
+                        ] }">
+                            <button @click="showDemo = !showDemo" class="bg-transparent border border-green-500 text-green-500 px-6 py-2 rounded-full hover:bg-green-500 hover:text-white transition-all duration-300 block mx-auto text-sm font-medium">
+                                <i class="fas fa-play-circle mr-2"></i><span x-text="showDemo ? 'Hide Demo' : 'See Demo'"></span>
+                            </button>
+
+                            <div x-show="showDemo" x-transition class="mt-4">
+                                <div class="space-y-4">
+                                    <div class="bg-white p-4 rounded-lg border">
+                                        <div class="flex items-center justify-between mb-4">
+                                            <span class="font-medium">Assessment Progress</span>
+                                            <span class="text-sm text-gray-500" x-text="assessmentStep + '/3'"></span>
+                                        </div>
+                                        <div class="w-full bg-gray-200 rounded-full h-2 mb-4">
+                                            <div class="bg-green-600 h-2 rounded-full transition-all duration-500"
+                                                 :style="`width: ${(assessmentStep/3)*100}%`"></div>
+                                        </div>
+
+                                        <div class="text-center">
+                                            <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                                                <i :class="assessmentStep === 1 ? 'fas fa-video' : assessmentStep === 2 ? 'fas fa-brain' : 'fas fa-clipboard-check'"
+                                                   class="text-green-600 text-xl"></i>
+                                            </div>
+                                            <h6 class="font-semibold mb-2" x-text="assessmentSteps[assessmentStep-1].title"></h6>
+                                            <p class="text-sm text-gray-600 mb-4" x-text="assessmentSteps[assessmentStep-1].description"></p>
+
+                                            <button @click="assessmentStep = assessmentStep < 3 ? assessmentStep + 1 : 1"
+                                                    class="bg-green-600 text-white px-6 py-2 rounded-full text-sm hover:bg-green-700 transition-colors">
+                                                <span x-text="assessmentStep === 3 ? 'Start Over' : 'Next Step'"></span>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div class="text-center">
+                                        <button class="bg-blue-600 text-white px-4 py-2 rounded-full text-sm hover:bg-blue-700 transition-colors">
+                                            Start Real Assessment
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -589,43 +877,125 @@
                 <p class="text-xl text-gray-600">Real transformations from real people</p>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" data-aos="fade-up" data-aos-delay="200">
-                <div>
-                    <div class="testimonial-card">
-                        <img src="https://via.placeholder.com/80x80" class="testimonial-avatar" alt="Sarah M.">
-                        <div class="stars">★★★★★</div>
-                        <p class="mb-4 text-gray-700">"Lost 30 pounds in 6 months! My trainer Sarah was amazing - she kept me motivated and created a plan that fit my busy schedule."</p>
-                        <h6 class="font-bold text-lg mb-1">Sarah M.</h6>
-                        <small class="text-gray-500">Marketing Manager</small>
-                        <div class="mt-4">
-                            <span class="inline-block bg-green-500 text-white px-3 py-1 rounded-full text-sm font-medium">Weight Loss: -30lbs</span>
+            <!-- Interactive Testimonial Carousel -->
+            <div class="relative mb-12" data-aos="fade-up" data-aos-delay="200" x-data="{ currentTestimonial: 0, testimonials: [
+                {
+                    id: 1,
+                    name: 'Sarah M.',
+                    role: 'Marketing Manager',
+                    image: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face',
+                    rating: 5,
+                    achievement: 'Weight Loss: -30lbs',
+                    achievementColor: 'bg-green-500',
+                    quote: 'Lost 30 pounds in 6 months! My trainer Sarah was amazing - she kept me motivated and created a plan that fit my busy schedule.',
+                    beforeAfter: { before: '185lbs', after: '155lbs', duration: '6 months' },
+                    program: 'Professional Plan'
+                },
+                {
+                    id: 2,
+                    name: 'Mike R.',
+                    role: 'Software Engineer',
+                    image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
+                    rating: 5,
+                    achievement: 'Muscle Gain: +15lbs',
+                    achievementColor: 'bg-blue-500',
+                    quote: 'Gained 15 pounds of muscle and improved my strength by 40%. The nutrition guidance was a game-changer!',
+                    beforeAfter: { before: '165lbs', after: '180lbs', duration: '8 months' },
+                    program: 'Elite Plan'
+                },
+                {
+                    id: 3,
+                    name: 'Emma L.',
+                    role: 'Teacher',
+                    image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face',
+                    rating: 5,
+                    achievement: 'Marathon Finisher',
+                    achievementColor: 'bg-yellow-500',
+                    quote: 'Completed my first marathon after working with my trainer for 8 months. Couldn\'t have done it without FitWell Pro!',
+                    beforeAfter: { before: 'Never ran', after: '26.2 miles', duration: '8 months' },
+                    program: 'Professional Plan'
+                },
+                {
+                    id: 4,
+                    name: 'David K.',
+                    role: 'Business Owner',
+                    image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
+                    rating: 5,
+                    achievement: 'Endurance: +200%',
+                    achievementColor: 'bg-purple-500',
+                    quote: 'From struggling with 5-minute runs to completing triathlons. The personalized training approach made all the difference.',
+                    beforeAfter: { before: '5 min runs', after: 'Triathlons', duration: '12 months' },
+                    program: 'Elite Plan'
+                }
+            ] }">
+                <!-- Main Testimonial Display -->
+                <div class="bg-white rounded-2xl shadow-xl p-8 md:p-12 text-center max-w-4xl mx-auto">
+                    <div class="flex flex-col md:flex-row items-center md:items-start space-y-6 md:space-y-0 md:space-x-8">
+                        <!-- Profile Image -->
+                        <div class="flex-shrink-0">
+                            <img :src="testimonials[currentTestimonial].image" :alt="testimonials[currentTestimonial].name"
+                                 class="w-24 h-24 md:w-32 md:h-32 rounded-full object-cover border-4 border-green-500 shadow-lg">
+                        </div>
+
+                        <!-- Testimonial Content -->
+                        <div class="flex-1">
+                            <div class="stars text-yellow-400 text-2xl mb-4" x-html="'★'.repeat(testimonials[currentTestimonial].rating)"></div>
+                            <blockquote class="text-xl md:text-2xl text-gray-700 mb-6 italic leading-relaxed">
+                                "<span x-text="testimonials[currentTestimonial].quote"></span>"
+                            </blockquote>
+
+                            <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+                                <div class="text-left">
+                                    <h4 class="font-bold text-xl text-gray-900" x-text="testimonials[currentTestimonial].name"></h4>
+                                    <p class="text-gray-600" x-text="testimonials[currentTestimonial].role"></p>
+                                    <p class="text-sm text-gray-500 mt-1" x-text="testimonials[currentTestimonial].program"></p>
+                                </div>
+                                <div class="mt-4 md:mt-0">
+                                    <span :class="testimonials[currentTestimonial].achievementColor + ' text-white px-4 py-2 rounded-full text-sm font-medium shadow-md'"
+                                          x-text="testimonials[currentTestimonial].achievement"></span>
+                                </div>
+                            </div>
+
+                            <!-- Before/After Stats -->
+                            <div class="mt-6 flex justify-center space-x-8 text-sm text-gray-600">
+                                <div class="text-center">
+                                    <div class="font-semibold text-gray-900">Before</div>
+                                    <div x-text="testimonials[currentTestimonial].beforeAfter.before"></div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="font-semibold text-gray-900">After</div>
+                                    <div x-text="testimonials[currentTestimonial].beforeAfter.after"></div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="font-semibold text-gray-900">Duration</div>
+                                    <div x-text="testimonials[currentTestimonial].beforeAfter.duration"></div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div>
-                    <div class="testimonial-card">
-                        <img src="https://via.placeholder.com/80x80" class="testimonial-avatar" alt="Mike R.">
-                        <div class="stars">★★★★★</div>
-                        <p class="mb-4 text-gray-700">"Gained 15 pounds of muscle and improved my strength by 40%. The nutrition guidance was a game-changer!"</p>
-                        <h6 class="font-bold text-lg mb-1">Mike R.</h6>
-                        <small class="text-gray-500">Software Engineer</small>
-                        <div class="mt-4">
-                            <span class="inline-block bg-blue-500 text-white px-3 py-1 rounded-full text-sm font-medium">Muscle Gain: +15lbs</span>
-                        </div>
-                    </div>
+
+                <!-- Navigation Dots -->
+                <div class="flex justify-center mt-8 space-x-3">
+                    <template x-for="(testimonial, index) in testimonials" :key="testimonial.id">
+                        <button @click="currentTestimonial = index"
+                                :class="currentTestimonial === index ? 'bg-green-500' : 'bg-gray-300'"
+                                class="w-3 h-3 rounded-full transition-all duration-300 hover:scale-125"
+                                :aria-label="'View testimonial from ' + testimonial.name"></button>
+                    </template>
                 </div>
-                <div>
-                    <div class="testimonial-card">
-                        <img src="https://via.placeholder.com/80x80" class="testimonial-avatar" alt="Emma L.">
-                        <div class="stars">★★★★★</div>
-                        <p class="mb-4 text-gray-700">"Completed my first marathon after working with my trainer for 8 months. Couldn't have done it without FitWell Pro!"</p>
-                        <h6 class="font-bold text-lg mb-1">Emma L.</h6>
-                        <small class="text-gray-500">Teacher</small>
-                        <div class="mt-4">
-                            <span class="inline-block bg-yellow-500 text-white px-3 py-1 rounded-full text-sm font-medium">Marathon Finisher</span>
-                        </div>
-                    </div>
-                </div>
+
+                <!-- Navigation Arrows -->
+                <button @click="currentTestimonial = currentTestimonial > 0 ? currentTestimonial - 1 : testimonials.length - 1"
+                        class="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white rounded-full p-3 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110"
+                        aria-label="Previous testimonial">
+                    <i class="fas fa-chevron-left text-gray-600"></i>
+                </button>
+                <button @click="currentTestimonial = currentTestimonial < testimonials.length - 1 ? currentTestimonial + 1 : 0"
+                        class="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white rounded-full p-3 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110"
+                        aria-label="Next testimonial">
+                    <i class="fas fa-chevron-right text-gray-600"></i>
+                </button>
             </div>
 
             <!-- Social Media Integration -->
