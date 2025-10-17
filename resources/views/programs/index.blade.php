@@ -23,7 +23,12 @@
     <!-- Programs Grid -->
     <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
         @forelse($programs as $program)
-            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition-shadow duration-200">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition-shadow duration-200
+                @if(isset($program->match_data) && $program->match_data['recommendation'] === 'excellent')
+                    ring-2 ring-green-200 bg-green-50/30
+                @elseif(isset($program->match_data) && $program->match_data['recommendation'] === 'good')
+                    ring-2 ring-blue-200 bg-blue-50/30
+                @endif">
                 <div class="p-6">
                     <!-- Program Header -->
                     <div class="flex items-start justify-between mb-4">
@@ -32,6 +37,15 @@
                             <p class="text-sm text-gray-600">by {{ $program->trainer->user->full_name ?? 'Trainer' }}</p>
                         </div>
                         <div class="flex flex-col items-end space-y-1">
+                            <!-- Match Score Badge -->
+                            @if(isset($program->match_data))
+                                <x-match-score :matchData="$program->match_data" size="sm" />
+                                @if($program->match_data['recommendation'] === 'excellent')
+                                    <span class="text-xs text-green-700 font-medium">Recommended</span>
+                                @elseif($program->match_data['recommendation'] === 'good')
+                                    <span class="text-xs text-blue-700 font-medium">Good Match</span>
+                                @endif
+                            @endif
                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
                                 @if($program->difficulty_level === 'beginner') bg-green-100 text-green-800
                                 @elseif($program->difficulty_level === 'intermediate') bg-yellow-100 text-yellow-800

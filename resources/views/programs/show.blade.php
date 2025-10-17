@@ -19,6 +19,13 @@
             </div>
         </div>
         <div class="mt-4 flex md:ml-4 md:mt-0">
+            <!-- Match Score Display -->
+            @if(isset($program->match_data))
+                <div class="mr-3">
+                    <x-match-score :matchData="$program->match_data" size="lg" />
+                </div>
+            @endif
+
             @if($program->is_enrolled)
                 <span class="inline-flex items-center px-4 py-2 border border-green-300 rounded-md shadow-sm text-sm font-medium text-green-700 bg-green-50">
                     <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
@@ -85,6 +92,64 @@
                                 <span class="text-gray-700">{{ $equipment }}</span>
                             </div>
                         @endforeach
+                    </div>
+                </div>
+            @endif
+
+            <!-- Match Analysis -->
+            @if(isset($program->match_data))
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Why This Program?</h3>
+                    <div class="space-y-4">
+                        <!-- Match Breakdown -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            @foreach($program->match_data['scores'] as $criterion => $score)
+                                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-2 h-2 rounded-full
+                                            @if($score >= 80) bg-green-500
+                                            @elseif($score >= 60) bg-blue-500
+                                            @elseif($score >= 40) bg-yellow-500
+                                            @else bg-red-500 @endif">
+                                        </div>
+                                        <span class="text-sm font-medium text-gray-700 capitalize">
+                                            {{ str_replace('_', ' ', $criterion) }}
+                                        </span>
+                                    </div>
+                                    <span class="text-sm font-semibold text-gray-900">{{ number_format($score, 0) }}%</span>
+                                </div>
+                            @endforeach
+                        </div>
+
+                        <!-- Explanations -->
+                        <div class="border-t pt-4">
+                            <h4 class="text-sm font-semibold text-gray-900 mb-2">Match Analysis</h4>
+                            <ul class="space-y-1">
+                                @foreach($program->match_data['explanations'] as $explanation)
+                                    <li class="text-sm text-gray-600 flex items-start">
+                                        <span class="text-gray-400 mr-2">•</span>
+                                        {{ $explanation }}
+                                    </li>
+                                @endforeach
+                            </ul>
+                        </div>
+
+                        <!-- Warnings -->
+                        @if(!empty($program->match_data['warnings']))
+                            <div class="border-t pt-4">
+                                <h4 class="text-sm font-semibold text-amber-800 mb-2">Important Considerations</h4>
+                                <ul class="space-y-1">
+                                    @foreach($program->match_data['warnings'] as $warning)
+                                        <li class="text-sm text-amber-700 flex items-start">
+                                            <svg class="w-4 h-4 text-amber-500 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                                            </svg>
+                                            {{ $warning }}
+                                        </li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @endif
                     </div>
                 </div>
             @endif

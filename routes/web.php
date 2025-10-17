@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\AdminDashboardController as ControllersAdminDashboardController;
 use App\Http\Controllers\CalendarController;
 use App\Http\Controllers\ClientProgramController;
+use App\Http\Controllers\ClientAssignmentController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\NutritionController;
 use App\Http\Controllers\ProfileController;
@@ -119,6 +120,14 @@ Route::middleware('auth')->group(function () {
     Route::get('/programs', [ClientProgramController::class, 'index'])->name('programs.index');
     Route::get('/programs/{id}', [ClientProgramController::class, 'show'])->name('programs.show');
     Route::post('/programs/{id}/enroll', [ClientProgramController::class, 'enroll'])->name('programs.enroll');
+
+    // Client Assignments
+    Route::prefix('client')->name('client.')->group(function () {
+        Route::get('/assignments', [ClientAssignmentController::class, 'index'])->name('assignments.index');
+        Route::get('/assignments/{id}', [ClientAssignmentController::class, 'show'])->name('assignments.show');
+        Route::delete('/assignments/{id}/withdraw', [ClientAssignmentController::class, 'withdraw'])->name('assignments.withdraw');
+        Route::patch('/assignments/{id}/progress', [ClientAssignmentController::class, 'updateProgress'])->name('assignments.update-progress');
+    });
 
     // Workouts
     Route::resource('workouts', WorkoutController::class);

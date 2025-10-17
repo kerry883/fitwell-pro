@@ -38,8 +38,8 @@
                                 <input type="text" class="form-control" id="name" name="name" value="{{ $program['name'] }}" required>
                             </div>
                             <div class="col-md-4 mb-3">
-                                <label for="duration" class="form-label">Duration (weeks) *</label>
-                                <input type="number" class="form-control" id="duration" name="duration" value="{{ $program['duration'] }}" min="1" max="52" required>
+                                <label for="duration_weeks" class="form-label">Duration (weeks) *</label>
+                                <input type="number" class="form-control" id="duration_weeks" name="duration_weeks" value="{{ $program['duration_weeks'] }}" min="1" max="52" required>
                             </div>
                         </div>
 
@@ -49,7 +49,7 @@
                         </div>
 
                         <div class="row">
-                            <div class="col-md-4 mb-3">
+                            <div class="col-md-3 mb-3">
                                 <label for="difficulty_level" class="form-label">Difficulty Level *</label>
                                 <select class="form-select" id="difficulty_level" name="difficulty_level" required>
                                     <option value="beginner" {{ $program['difficulty_level'] === 'beginner' ? 'selected' : '' }}>Beginner</option>
@@ -57,7 +57,7 @@
                                     <option value="advanced" {{ $program['difficulty_level'] === 'advanced' ? 'selected' : '' }}>Advanced</option>
                                 </select>
                             </div>
-                            <div class="col-md-4 mb-3">
+                            <div class="col-md-3 mb-3">
                                 <label for="program_type" class="form-label">Program Type *</label>
                                 <select class="form-select" id="program_type" name="program_type" required>
                                     <option value="strength_training" {{ $program['program_type'] === 'strength_training' ? 'selected' : '' }}>Strength Training</option>
@@ -68,7 +68,7 @@
                                     <option value="sports_specific" {{ $program['program_type'] === 'sports_specific' ? 'selected' : '' }}>Sports Specific</option>
                                 </select>
                             </div>
-                            <div class="col-md-4 mb-3">
+                            <div class="col-md-3 mb-3">
                                 <label for="sessions_per_week" class="form-label">Sessions per Week *</label>
                                 <select class="form-select" id="sessions_per_week" name="sessions_per_week" required>
                                     <option value="1" {{ $program['sessions_per_week'] == 1 ? 'selected' : '' }}>1</option>
@@ -78,6 +78,14 @@
                                     <option value="5" {{ $program['sessions_per_week'] == 5 ? 'selected' : '' }}>5</option>
                                     <option value="6" {{ $program['sessions_per_week'] == 6 ? 'selected' : '' }}>6</option>
                                     <option value="7" {{ $program['sessions_per_week'] == 7 ? 'selected' : '' }}>7</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label for="status" class="form-label">Status *</label>
+                                <select class="form-select" id="status" name="status" required>
+                                    <option value="draft" {{ $program['status'] === 'draft' ? 'selected' : '' }}>Draft</option>
+                                    <option value="published" {{ $program['status'] === 'published' ? 'selected' : '' }}>Published</option>
+                                    <option value="archived" {{ $program['status'] === 'archived' ? 'selected' : '' }}>Archived</option>
                                 </select>
                             </div>
                         </div>
@@ -201,7 +209,7 @@
                             <div class="row text-center mb-3">
                                 <div class="col-4">
                                     <div class="preview-stat">
-                                        <strong id="preview-duration">{{ $program['duration'] }}</strong>
+                                        <strong id="preview-duration">{{ $program['duration_weeks'] }}</strong>
                                         <small class="d-block text-muted">Weeks</small>
                                     </div>
                                 </div>
@@ -259,7 +267,7 @@ document.getElementById('description').addEventListener('input', function() {
     document.getElementById('preview-description').textContent = this.value || 'Program Description';
 });
 
-document.getElementById('duration').addEventListener('change', function() {
+document.getElementById('duration_weeks').addEventListener('change', function() {
     document.getElementById('preview-duration').textContent = this.value;
 });
 

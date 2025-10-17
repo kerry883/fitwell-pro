@@ -16,26 +16,29 @@ class ClientProgramController extends Controller
     public function index()
     {
         $client = Auth::user()->clientProfile;
-        $clientGoals = $client->goals ?? [];
 
+        // Get ALL available programs (remove goal filtering to show everything)
         $programs = Program::public()
             ->published()
             ->with('trainer.user')
-            ->when(!empty($clientGoals), function ($query) use ($clientGoals) {
-                // Filter programs that match client's goals
-                $query->where(function ($q) use ($clientGoals) {
-                    foreach ($clientGoals as $goal) {
-                        $q->orWhereJsonContains('goals', $goal);
-                    }
-                });
-            })
-            ->orderBy('created_at', 'desc')
-            ->get()
-            ->map(function ($program) {
-                $program->can_enroll = $program->canEnrollClient();
-                $program->is_enrolled = $this->isClientEnrolled($program->id);
-                return $program;
-            });
+            ->get();
+
+        // Apply matching algorithm to calculate scores but DON'T sort by match score
+        // Keep original order (by creation date) but add match data
+        $matchingService = app(\App\Services\ProgramMatchingService::class);
+        $programs = $programs->map(function ($program) use ($client, $matchingService) {
+            $matchData = $matchingService->calculateMatch($client, $program);
+            $program->match_data = $matchData;
+            $program->match_score = $matchData['total_score'];
+            return $program;
+        });
+
+        // Add enrollment status and capabilities
+        $programs = $programs->map(function ($program) {
+            $program->can_enroll = $program->canEnrollClient();
+            $program->is_enrolled = $this->isClientEnrolled($program->id);
+            return $program;
+        });
 
         return view('programs.index', compact('programs'));
     }
@@ -50,8 +53,15 @@ class ClientProgramController extends Controller
             ->with('trainer.user')
             ->findOrFail($id);
 
+        $client = Auth::user()->clientProfile;
+
+        // Calculate match score for this program
+        $matchingService = app(\App\Services\ProgramMatchingService::class);
+        $matchData = $matchingService->calculateMatch($client, $program);
+
         $program->can_enroll = $program->canEnrollClient();
         $program->is_enrolled = $this->isClientEnrolled($program->id);
+        $program->match_data = $matchData;
 
         return view('programs.show', compact('program'));
     }
@@ -106,7 +116,7 @@ class ClientProgramController extends Controller
             ]);
         });
 
-        return redirect()->route('dashboard')
+        return redirect()->route('client.assignments.index')
             ->with('success', 'Enrollment request sent for ' . $program->name . '. Waiting for trainer approval.');
     }
 
