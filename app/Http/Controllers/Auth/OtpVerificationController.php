@@ -88,8 +88,17 @@ class OtpVerificationController extends Controller
                 'expires_at' => now()->addMinutes(10), // 10 minutes expiry
             ]);
 
-            // Send email
-            Mail::to($user->email)->send(new OtpVerificationMail($user, $otpCode));
+            // Log OTP for development/testing (REMOVE IN PRODUCTION)
+            Log::info('OTP Code Generated', [
+                'user_id' => $user->id,
+                'email' => $user->email,
+                'otp_code' => $otpCode,
+                'expires_at' => now()->addMinutes(10)->toISOString(),
+                'ip' => $request->ip()
+            ]);
+
+            // Send email (enqueue mail job)
+            Mail::to($user->email)->queue(new OtpVerificationMail($user, $otpCode));
 
             // Set resend throttle
             UserVerification::setResendThrottle($user->id, 30);

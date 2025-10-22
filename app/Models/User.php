@@ -23,6 +23,7 @@ class User extends Authenticatable
         'email',
         'password',
         'user_type',
+        'gender',
         'age',
         'height',
         'weight',
@@ -110,6 +111,24 @@ class User extends Authenticatable
         if ($this->height && $this->weight) {
             $heightInMeters = $this->height / 100;
             return round($this->weight / ($heightInMeters * $heightInMeters), 2);
+        }
+        return null;
+    }
+
+    public function getBmrAttribute()
+    {
+        if ($this->age && $this->height && $this->weight && $this->gender) {
+            $heightInCm = $this->height;
+            $weightInKg = $this->weight;
+            $age = $this->age;
+
+            if ($this->gender === 'male') {
+                // Mifflin-St Jeor Equation for men: BMR = 10 * weight + 6.25 * height - 5 * age + 5
+                return round(10 * $weightInKg + 6.25 * $heightInCm - 5 * $age + 5, 2);
+            } elseif ($this->gender === 'female') {
+                // Mifflin-St Jeor Equation for women: BMR = 10 * weight + 6.25 * height - 5 * age - 161
+                return round(10 * $weightInKg + 6.25 * $heightInCm - 5 * $age - 161, 2);
+            }
         }
         return null;
     }

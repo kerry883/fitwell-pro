@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Session;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\DB;
 
 class LoginController extends Controller
 {
@@ -22,6 +24,8 @@ class LoginController extends Controller
      */
     public function login(Request $request)
     {
+
+
         $credentials = $request->validate([
             'email' => ['required', 'string', 'email'],
             'password' => ['required', 'string'],
@@ -86,7 +90,13 @@ class LoginController extends Controller
         
         $request->session()->invalidate();
         $request->session()->regenerateToken();
+        // Let Laravel handle session invalidation and token regeneration.
         
-        return redirect('/');
+        return redirect('/')
+            ->withHeaders([
+                'Cache-Control' => 'no-cache, no-store, max-age=0, must-revalidate',
+                'Pragma' => 'no-cache',
+                'Expires' => 'Fri, 01 Jan 1990 00:00:00 GMT'
+            ]);
     }
 }

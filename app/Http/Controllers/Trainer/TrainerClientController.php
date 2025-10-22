@@ -3,20 +3,48 @@
 namespace App\Http\Controllers\Trainer;
 
 use App\Http\Controllers\Controller;
+use App\Models\ClientProfile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
+use App\Models\Program;
+use GuzzleHttp\Client;
 
 class TrainerClientController extends Controller
 {
     /**
      * Display all clients for the trainer
      */
-    public function index()
+    public function index(Request $request)
     {
         $trainer = Auth::user();
-        $clients = $this->getTrainerClients($trainer);
-        
+
+        $clientQuery = ClientProfile::with(['user'])
+            ->where('trainer_id', $trainer->id);
+
+        // Apply search filter
+        if($request->has('search') && $request->search){
+            $clientQuery->whereHas('user', function($query) use ($request){
+                $query->where('name', 'like', '%' . $request->search . '%')
+                    ->orWhere('email', 'like', '%' . $request->search . '%');
+            });
+        }
+
+        $clients = $clientQuery->get()->map(function($clientProfile) {
+            return [
+                'id' => $clientProfile->id,
+                'name' => $clientProfile->user->name,
+                'email' => $clientProfile->user->email,
+                'joinedDate' => $clientProfile->joined_date,
+                'lastSession' => $clientProfile->last_session,
+                'nextSession' => $clientProfile->next_session,
+                'status' => $clientProfile->status,
+                'progress' => $clientProfile->progress,
+                'sessionsCompleted' => $clientProfile->sessions_completed,
+                'currentGoals' => $clientProfile->goals ?? [],
+            ];
+        });
+
         return view('trainer.clients.index', compact('clients'));
     }
     
@@ -42,8 +70,9 @@ class TrainerClientController extends Controller
     /**
      * Get all clients for the trainer
      */
-    private function getTrainerClients($trainer)
+    private function getTrainerClients($id)
     {
+        
         // This would fetch actual client relationships
         return [
             [

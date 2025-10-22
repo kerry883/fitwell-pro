@@ -46,9 +46,9 @@ class ClientAssignmentController extends Controller
 
         // Get upcoming workouts
         $upcomingWorkouts = $assignment->program->workouts()
-            ->where('week', '>=', $currentWeek)
-            ->orderBy('week')
-            ->orderBy('day')
+            ->where('week_number', '>=', $currentWeek)
+            ->orderBy('week_number')
+            ->orderBy('day', 'asc')
             ->take(5)
             ->get();
 
@@ -86,6 +86,34 @@ class ClientAssignmentController extends Controller
             // Decrease program current clients count if it was active
             if ($assignment->isActive()) {
                 $assignment->program->decrement('current_clients');
+            }
+
+            // Check if client has any remaining active assignments with this trainer
+            $remainingAssignmentsWithTrainer = ProgramAssignment::where('client_id', $client->id)
+                ->where('id', '!=', $assignment->id) // Exclude the current assignment being withdrawn
+                ->whereHas('program', function ($query) use ($assignment) {
+                    $query->where('trainer_id', $assignment->program->trainer_id);
+                })
+                ->whereIn('status', ['active', 'pending'])
+                ->count();
+
+            // If no remaining assignments with this trainer, update trainer relationship
+            if ($remainingAssignmentsWithTrainer === 0) {
+                $newTrainerCount = max(0, $client->trainer_count - 1);
+
+                if ($newTrainerCount === 0) {
+                    // No trainers left, clear trainer_id
+                    $client->update([
+                        'trainer_id' => null,
+                        'trainer_count' => 0,
+                    ]);
+                } else {
+                    // Still have other trainers, decrement count but keep current trainer_id
+                    // (could potentially switch to another trainer, but keeping current is simpler)
+                    $client->update([
+                        'trainer_count' => $newTrainerCount,
+                    ]);
+                }
             }
 
             // Create notification for trainer

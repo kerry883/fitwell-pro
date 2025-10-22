@@ -18,6 +18,7 @@ use App\Http\Controllers\Trainer\TrainerDashboardController;
 use App\Http\Controllers\Trainer\TrainerClientController;
 use App\Http\Controllers\Trainer\TrainerProgramController;
 use App\Http\Controllers\Trainer\TrainerProfileController;
+use App\Http\Controllers\Trainer\ProfilePhotoController;
 use App\Http\Controllers\Trainer\TrainerScheduleController;
 use App\Http\Controllers\Trainer\TrainerAnalyticsController;
 use App\Http\Controllers\Trainer\TrainerAssignmentController;

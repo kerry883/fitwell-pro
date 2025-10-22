@@ -24,6 +24,7 @@ return new class extends Migration
             $table->time('start_time')->nullable();
             $table->time('end_time')->nullable();
             $table->enum('status', ['planned', 'in_progress', 'completed', 'skipped'])->default('planned');
+            $table->integer('week_number');
             $table->text('notes')->nullable();
             $table->timestamps();
         });

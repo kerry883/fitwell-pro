@@ -72,6 +72,6 @@ class UserVerification extends Model
     public static function getResendCooldown($userId)
     {
         $key = "otp_resend_{$userId}";
-        return Cache::store('file')->get($key) ? 30 : 0; // Simplified cooldown check
+        return Cache::get($key) ? 30 : 0; // Use configured cache store
     }
 }

@@ -16,10 +16,10 @@ class TrainerProfileController extends Controller
     {
         $trainer = Auth::user();
         $trainerProfile = $trainer->trainerProfile;
-        
+
         return view('trainer.profile.index', compact('trainer', 'trainerProfile'));
     }
-    
+
     /**
      * Show profile edit form
      */
@@ -27,10 +27,10 @@ class TrainerProfileController extends Controller
     {
         $trainer = Auth::user();
         $trainerProfile = $trainer->trainerProfile;
-        
+
         return view('trainer.profile.edit', compact('trainer', 'trainerProfile'));
     }
-    
+
     /**
      * Update trainer profile
      */
@@ -58,26 +58,41 @@ class TrainerProfileController extends Controller
             'training_locations' => 'nullable|array',
             'cancellation_policy' => 'nullable|string|max:1000',
         ]);
-        
+
         $trainer = Auth::user();
-        
+
+        // Handle profile photo upload
+        if ($request->hasFile('profile_photo')) {
+            $image = $request->file('profile_photo');
+            $filename = time() . '.' . $image->getClientOriginalExtension();
+            $path = $image->storeAs('profile_photos', $filename, 'public');
+
+            // Delete old profile photo if exists
+            if ($trainer->profile_picture) {
+                Storage::disk('public')->delete($trainer->profile_picture);
+            }
+
+            $trainer->profile_picture = $path;
+        }
+
         // Update user basic info
         $trainer->update([
             'first_name' => $request->first_name,
             'last_name' => $request->last_name,
             'email' => $request->email,
+            'profile_picture' => $trainer->profile_picture,
         ]);
-        
+
         // Update trainer profile
         $trainerProfile = $trainer->trainerProfile;
         if ($trainerProfile) {
-            $trainerProfile->update($request->except(['first_name', 'last_name', 'email', '_token', '_method']));
+            $trainerProfile->update($request->except(['first_name', 'last_name', 'email', 'profile_photo', '_token', '_method']));
         }
-        
+
         return redirect()->route('trainer.profile.index')
             ->with('success', 'Profile updated successfully!');
     }
-    
+
     /**
      * Update trainer availability
      */
@@ -86,20 +101,20 @@ class TrainerProfileController extends Controller
         $request->validate([
             'availability_schedule' => 'required|array',
         ]);
-        
+
         $trainer = Auth::user();
         $trainerProfile = $trainer->trainerProfile;
-        
+
         if ($trainerProfile) {
             $trainerProfile->update([
                 'availability_schedule' => $request->availability_schedule
             ]);
         }
-        
+
         return redirect()->route('trainer.profile.index')
             ->with('success', 'Availability updated successfully!');
     }
-    
+
     /**
      * Update trainer rates
      */
@@ -109,17 +124,17 @@ class TrainerProfileController extends Controller
             'hourly_rate' => 'required|numeric|min:0',
             'package_rates' => 'nullable|array',
         ]);
-        
+
         $trainer = Auth::user();
         $trainerProfile = $trainer->trainerProfile;
-        
+
         if ($trainerProfile) {
             $trainerProfile->update([
                 'hourly_rate' => $request->hourly_rate,
                 'package_rates' => $request->package_rates
             ]);
         }
-        
+
         return redirect()->route('trainer.profile.index')
             ->with('success', 'Rates updated successfully!');
     }

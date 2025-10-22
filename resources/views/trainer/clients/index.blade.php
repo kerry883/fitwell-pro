@@ -79,7 +79,7 @@
     </div>
 
     <!-- Client Filters and Search -->
-    <div class="col-12">
+    <div class="col-12 mb-3">
         <div class="card trainer-card">
             <div class="card-body">
                 <div class="row align-items-center">

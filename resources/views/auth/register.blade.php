@@ -243,7 +243,21 @@
                                 <p class="text-sm text-blue-700">Help us personalize your experience by sharing some basic fitness information. You can skip this and complete it later if you prefer.</p>
                             </div>
 
-                            <div class="grid md:grid-cols-3 gap-6">
+                            <div class="grid md:grid-cols-2 gap-6">
+                                <div>
+                                    <label for="gender" class="block text-sm font-medium text-gray-700 mb-2">Gender</label>
+                                    <select
+                                        id="gender"
+                                        name="gender"
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition duration-200"
+                                    >
+                                        <option value="">Select gender</option>
+                                        <option value="male" {{ old('gender') == 'male' ? 'selected' : '' }}>Male</option>
+                                        <option value="female" {{ old('gender') == 'female' ? 'selected' : '' }}>Female</option>
+                                        <option value="other" {{ old('gender') == 'other' ? 'selected' : '' }}>Other</option>
+                                    </select>
+                                </div>
+
                                 <div>
                                     <label for="age" class="block text-sm font-medium text-gray-700 mb-2">Age</label>
                                     <input
@@ -257,7 +271,9 @@
                                         max="120"
                                     >
                                 </div>
-                                
+                            </div>
+
+                            <div class="grid md:grid-cols-2 gap-6">
                                 <div>
                                     <label for="height" class="block text-sm font-medium text-gray-700 mb-2">Height (cm)</label>
                                     <input
@@ -271,7 +287,7 @@
                                         max="250"
                                     >
                                 </div>
-                                
+
                                 <div>
                                     <label for="weight" class="block text-sm font-medium text-gray-700 mb-2">Weight (kg)</label>
                                     <input
@@ -337,6 +353,20 @@
                             <div class="bg-purple-50 border border-purple-200 rounded-lg p-4">
                                 <h3 class="font-semibold text-purple-900 mb-2">Professional Information</h3>
                                 <p class="text-sm text-purple-700">Tell us about your experience and specializations to help clients find you.</p>
+                            </div>
+
+                            <div>
+                                <label for="gender_trainer" class="block text-sm font-medium text-gray-700 mb-2">Gender</label>
+                                <select
+                                    id="gender_trainer"
+                                    name="gender"
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition duration-200"
+                                >
+                                    <option value="">Select gender</option>
+                                    <option value="male" {{ old('gender') == 'male' ? 'selected' : '' }}>Male</option>
+                                    <option value="female" {{ old('gender') == 'female' ? 'selected' : '' }}>Female</option>
+                                    <option value="other" {{ old('gender') == 'other' ? 'selected' : '' }}>Other</option>
+                                </select>
                             </div>
 
                             <div>

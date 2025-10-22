@@ -11,6 +11,8 @@ class ClientProfile extends Model
 
     protected $fillable = [
         'user_id',
+        'trainer_id',
+        'trainer_count',
         'fitness_history',
         'medical_conditions',
         'injuries',
@@ -28,6 +30,11 @@ class ClientProfile extends Model
         'status',
         'start_date',
         'end_date',
+        'joined_date',
+        'last_session',
+        'next_session',
+        'progress',
+        'sessions_completed',
     ];
 
     protected function casts(): array
@@ -40,6 +47,9 @@ class ClientProfile extends Model
             'preferred_workout_time' => 'datetime:H:i',
             'start_date' => 'date',
             'end_date' => 'date',
+            'joined_date' => 'date',
+            'last_session' => 'date',
+            'next_session' => 'datetime',
         ];
     }
 

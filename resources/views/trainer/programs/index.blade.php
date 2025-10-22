@@ -49,7 +49,7 @@
                             <i class="bi bi-people-fill" style="font-size: 2rem;"></i>
                         </div>
                         <h4 class="mb-1">{{ collect($programs)->sum('active_clients') }}</h4>
-                        <p class="text-muted mb-0">Enrolled Clients</p>
+                        <p class="text-muted mb-0">Active Clients</p>
                     </div>
                 </div>
             </div>

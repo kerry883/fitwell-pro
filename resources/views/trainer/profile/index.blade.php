@@ -21,9 +21,9 @@
                                 {{ substr($trainer->first_name, 0, 1) }}{{ substr($trainer->last_name, 0, 1) }}
                             </div>
                         @endif
-                        <button class="btn btn-sm btn-outline-primary">
+                        <a href="{{ route('trainer.profile.edit') }}" class="btn btn-sm btn-outline-primary">
                             <i class="bi bi-camera"></i> Change Photo
-                        </button>
+                        </a>
                     </div>
                     <div class="col-md-7">
                         <h3 class="mb-1">{{ $trainer->full_name }}</h3>
@@ -137,9 +137,10 @@
                     <h5 class="mb-0"><i class="bi bi-star me-2"></i>Specializations</h5>
                 </div>
                 <div class="card-body">
-                    @if($trainerProfile && $trainerProfile->specializations)
+                    @if($trainerProfile && !empty($trainerProfile->specializations))
+                        @php $specializations = is_array($trainerProfile->specializations) ? $trainerProfile->specializations : []; @endphp
                         <div class="d-flex flex-wrap gap-1">
-                            @foreach($trainerProfile->specializations as $spec)
+                            @foreach($specializations as $spec)
                                 <span class="badge bg-light text-dark">{{ $spec }}</span>
                             @endforeach
                         </div>
