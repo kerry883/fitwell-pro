@@ -58,16 +58,21 @@ class TrainerAssignmentController extends Controller
             $assignment->program->increment('current_clients');
 
             // Create notification for client
-            Notification::create([
+            $notification = Notification::create([
                 'user_id' => $assignment->client->user->id,
-                'type' => 'assignment_approved',
+                'type' => 'program_assignment_approved',
                 'title' => 'Program Enrollment Approved',
                 'message' => "Your enrollment request for '{$assignment->program->name}' has been approved. You can now start your program!",
                 'data' => [
                     'program_id' => $assignment->program->id,
                     'assignment_id' => $assignment->id,
+                    'client_id' => $assignment->client->id,
+                    'trainer_id' => $assignment->program->trainer_id,
                 ],
             ]);
+            
+            // Broadcast the notification
+            broadcast(new \App\Events\NotificationCreated($notification));
         });
 
         return redirect()->back()
@@ -104,7 +109,7 @@ class TrainerAssignmentController extends Controller
             ]);
 
             // Create notification for client
-            Notification::create([
+            $notification = Notification::create([
                 'user_id' => $assignment->client->user->id,
                 'type' => 'assignment_rejected',
                 'title' => 'Program Enrollment Rejected',
@@ -113,8 +118,13 @@ class TrainerAssignmentController extends Controller
                 'data' => [
                     'program_id' => $assignment->program->id,
                     'assignment_id' => $assignment->id,
+                    'client_id' => $assignment->client->id,
+                    'trainer_id' => $assignment->program->trainer_id,
                 ],
             ]);
+            
+            // Broadcast the notification
+            broadcast(new \App\Events\NotificationCreated($notification));
         });
 
         return redirect()->back()

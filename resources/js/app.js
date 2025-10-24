@@ -1,5 +1,6 @@
 import './bootstrap';
 import Alpine from 'alpinejs';
+import './notification-dropdown';
 
 // Font Awesome
 import '@fortawesome/fontawesome-free/css/all.min.css';

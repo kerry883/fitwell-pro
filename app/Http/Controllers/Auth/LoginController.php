@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class LoginController extends Controller
 {
@@ -51,8 +52,17 @@ class LoginController extends Controller
         }
 
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
+            // Regenerate session for security (but don't invalidate until after login)
+            Log::info('Login successful, regenerating session', [
+                'user_id' => Auth::user()->id,
+                'user_type' => Auth::user()->user_type,
+                'old_session_id' => $request->session()->getId(),
+            ]);
             $request->session()->regenerate();
-            
+            Log::info('Session regenerated after login', [
+                'new_session_id' => $request->session()->getId(),
+            ]);
+
             // Clear rate limiting on successful login
             cache()->forget($key);
             
@@ -86,11 +96,20 @@ class LoginController extends Controller
      */
     public function logout(Request $request)
     {
+        // Get current session ID for cleanup
+        $sessionId = $request->session()->getId();
+        
         Auth::logout();
         
+        // Force complete session cleanup
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-        // Let Laravel handle session invalidation and token regeneration.
+        $request->session()->flush();
+        
+        // Manually delete session from database to prevent reuse
+        if ($sessionId) {
+            DB::table('sessions')->where('id', $sessionId)->delete();
+        }
         
         return redirect('/')
             ->withHeaders([

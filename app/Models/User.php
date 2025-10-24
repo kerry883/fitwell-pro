@@ -98,6 +98,11 @@ class User extends Authenticatable
         return $this->hasOne(AdminProfile::class);
     }
 
+    public function notifications()
+    {
+        return $this->hasMany(Notification::class);
+    }
+
     /**
      * Helper methods
      */

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\ProgramAssignment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 
 class ClientAssignmentController extends Controller
@@ -100,9 +101,14 @@ class ClientAssignmentController extends Controller
             // If no remaining assignments with this trainer, update trainer relationship
             if ($remainingAssignmentsWithTrainer === 0) {
                 $newTrainerCount = max(0, $client->trainer_count - 1);
-
                 if ($newTrainerCount === 0) {
                     // No trainers left, clear trainer_id
+                    Log::info('Clearing client trainer_id on withdrawal', [
+                        'client_id' => $client->id,
+                        'trainer_id_before' => $client->trainer_id,
+                        'trainer_count_before' => $client->trainer_count,
+                        'trainer_count_after' => 0,
+                    ]);
                     $client->update([
                         'trainer_id' => null,
                         'trainer_count' => 0,
@@ -110,6 +116,38 @@ class ClientAssignmentController extends Controller
                 } else {
                     // Still have other trainers, decrement count but keep current trainer_id
                     // (could potentially switch to another trainer, but keeping current is simpler)
+                    Log::info('Decrementing client trainer_count on withdrawal', [
+                        'client_id' => $client->id,
+                        'trainer_id' => $client->trainer_id,
+                        'trainer_count_before' => $client->trainer_count,
+                        'trainer_count_after' => $newTrainerCount,
+                    ]);
+                    $client->update([
+                        'trainer_count' => $newTrainerCount,
+                    ]);
+                }
+
+                if ($newTrainerCount === 0) {
+                    // No trainers left, clear trainer_id
+                    Log::info('Clearing client trainer_id on withdrawal', [
+                        'client_id' => $client->id,
+                        'trainer_id_before' => $client->trainer_id,
+                        'trainer_count_before' => $client->trainer_count,
+                        'trainer_count_after' => 0,
+                    ]);
+                    $client->update([
+                        'trainer_id' => null,
+                        'trainer_count' => 0,
+                    ]);
+                } else {
+                    // Still have other trainers, decrement count but keep current trainer_id
+                    // (could potentially switch to another trainer, but keeping current is simpler)
+                    Log::info('Decrementing client trainer_count on withdrawal', [
+                        'client_id' => $client->id,
+                        'trainer_id' => $client->trainer_id,
+                        'trainer_count_before' => $client->trainer_count,
+                        'trainer_count_after' => $newTrainerCount,
+                    ]);
                     $client->update([
                         'trainer_count' => $newTrainerCount,
                     ]);
@@ -117,7 +155,7 @@ class ClientAssignmentController extends Controller
             }
 
             // Create notification for trainer
-            \App\Models\Notification::create([
+            $notification = \App\Models\Notification::create([
                 'user_id' => $assignment->program->trainer->user->id,
                 'type' => 'client_withdrawal',
                 'title' => 'Client Withdrew from Program',
@@ -129,6 +167,9 @@ class ClientAssignmentController extends Controller
                     'assignment_id' => $assignment->id,
                 ],
             ]);
+
+            // Broadcast the notification
+            broadcast(new \App\Events\NotificationCreated($notification))->toOthers();
         });
 
         return redirect()->route('client.assignments.index')
@@ -153,6 +194,8 @@ class ClientAssignmentController extends Controller
             ->where('status', ProgramAssignment::STATUS_ACTIVE)
             ->findOrFail($id);
 
+        $oldProgress = $assignment->progress_percentage;
+
         $assignment->updateProgress(
             $request->current_week,
             $request->current_session,
@@ -164,12 +207,32 @@ class ClientAssignmentController extends Controller
             $assignment->update(['notes' => $request->notes]);
         }
 
+        // Create progress update notification for trainer if significant progress made
+        if ($request->progress_percentage > $oldProgress && ($request->progress_percentage - $oldProgress) >= 10) {
+            $notification = \App\Models\Notification::create([
+                'user_id' => $assignment->program->trainer->user->id,
+                'type' => 'program_progress_update',
+                'title' => 'Program Progress Update',
+                'message' => "Client {$client->user->full_name} has made progress in '{$assignment->program->name}' - now at {$request->progress_percentage}% complete!",
+                'data' => [
+                    'program_id' => $assignment->program->id,
+                    'client_id' => $client->id,
+                    'assignment_id' => $assignment->id,
+                    'progress_percentage' => $request->progress_percentage,
+                    'old_progress' => $oldProgress,
+                ],
+            ]);
+
+            // Broadcast the notification
+            broadcast(new \App\Events\NotificationCreated($notification))->toOthers();
+        }
+
         // Check if program is completed
         if ($request->progress_percentage >= 100) {
             $assignment->markAsCompleted();
 
             // Create notification for trainer
-            \App\Models\Notification::create([
+            $notification = \App\Models\Notification::create([
                 'user_id' => $assignment->program->trainer->user->id,
                 'type' => 'program_completed',
                 'title' => 'Program Completed',
@@ -180,6 +243,9 @@ class ClientAssignmentController extends Controller
                     'assignment_id' => $assignment->id,
                 ],
             ]);
+
+            // Broadcast the notification
+            broadcast(new \App\Events\NotificationCreated($notification))->toOthers();
         }
 
         return redirect()->back()

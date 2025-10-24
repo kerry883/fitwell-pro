@@ -135,6 +135,50 @@
             </form>
         </div>
 
+        <!-- Body Measurements -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-xl font-semibold text-gray-900">Body Measurements</h2>
+                <button type="button" onclick="toggleEdit('body-measurements')"
+                        class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                    Edit
+                </button>
+            </div>
+
+            <form id="body-measurements-form" action="{{ route('profile.update') }}" method="POST" class="space-y-6">
+                @csrf
+                @method('PATCH')
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Waist (cm)</label>
+                        <input type="number" name="waist_cm" value="{{ old('waist_cm', $profile->waist_cm) }}" step="0.1" min="40" max="200"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Chest (cm)</label>
+                        <input type="number" name="chest_cm" value="{{ old('chest_cm', $profile->chest_cm) }}" step="0.1" min="50" max="200"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Arms (cm)</label>
+                        <input type="number" name="arms_cm" value="{{ old('arms_cm', $profile->arms_cm) }}" step="0.1" min="15" max="60"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </div>
+                </div>
+
+                <div class="flex justify-end space-x-3">
+                    <button type="button" onclick="cancelEdit('body-measurements')"
+                            class="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50">
+                        Cancel
+                    </button>
+                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                        Save Measurements
+                    </button>
+                </div>
+            </form>
+        </div>
+
         <!-- Fitness Preferences -->
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <div class="flex items-center justify-between mb-6">
@@ -342,7 +386,7 @@ function cancelEdit(section) {
 
 // Initialize forms as hidden
 document.addEventListener('DOMContentLoaded', function() {
-    const forms = ['basic-info-form', 'fitness-prefs-form', 'medical-info-form', 'goals-form'];
+    const forms = ['basic-info-form', 'body-measurements-form', 'fitness-prefs-form', 'medical-info-form', 'goals-form'];
     forms.forEach(formId => {
         const form = document.getElementById(formId);
         if (form) {

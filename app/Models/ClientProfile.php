@@ -35,6 +35,9 @@ class ClientProfile extends Model
         'next_session',
         'progress',
         'sessions_completed',
+        'waist_cm',
+        'chest_cm',
+        'arms_cm',
     ];
 
     protected function casts(): array
@@ -64,5 +67,20 @@ class ClientProfile extends Model
     public function assignments()
     {
         return $this->hasMany(ProgramAssignment::class, 'client_id');
+    }
+
+    public function notes()
+    {
+        return $this->hasMany(ClientNote::class, 'client_id');
+    }
+
+    public function schedules()
+    {
+        return $this->hasMany(ClientSchedule::class, 'client_id');
+    }
+
+    public function goals()
+    {
+        return $this->hasMany(Goal::class, 'client_id');
     }
 }
