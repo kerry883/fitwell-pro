@@ -20,6 +20,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'admin' => \App\Http\Middleware\AdminMiddlewareNew::class,
             'admin.session' => \App\Http\Middleware\AdminSessionTimeout::class,
             'nocache' => \App\Http\Middleware\NoCacheHeaders::class,
+            'role' => \App\Http\Middleware\RoleMiddleware::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

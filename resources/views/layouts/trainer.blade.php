@@ -221,7 +221,8 @@
                            class="nav-link {{ request()->routeIs('trainer.profile.*') ? 'active' : '' }}">
                             <i class="bi bi-person-gear me-2"></i> Profile
                         </a>
-                        <a href="#" class="nav-link">
+                        <a href="{{ route('trainer.settings.index') }}" 
+                           class="nav-link {{ request()->routeIs('settings.index') ? 'active' : '' }}">
                             <i class="bi bi-gear me-2"></i> Settings
                         </a>
                         
@@ -269,7 +270,7 @@
                                             <a class="dropdown-item" href="{{ route('trainer.profile.index') }}">
                                                 <i class="bi bi-person me-2"></i> Profile
                                             </a>
-                                            <a class="dropdown-item" href="#">
+                                            <a class="dropdown-item" href="{{ route('trainer.settings.index') }}">
                                                 <i class="bi bi-gear me-2"></i> Settings
                                             </a>
                                             <div class="dropdown-divider"></div>

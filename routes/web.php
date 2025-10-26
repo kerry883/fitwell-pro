@@ -141,6 +141,9 @@ Route::middleware('auth')->group(function () {
         Route::patch('/profile/availability', [TrainerProfileController::class, 'updateAvailability'])->name('profile.availability');
         Route::patch('/profile/rates', [TrainerProfileController::class, 'updateRates'])->name('profile.rates');
 
+        Route::get('/settings', [\App\Http\Controllers\Trainer\SettingsController::class, 'index'])->name('settings.index');
+        Route::put('/settings', [\App\Http\Controllers\Trainer\SettingsController::class, 'update'])->name('settings.update');
+
         // Trainer Logout
         Route::post('/logout', [LoginController::class, 'logout'])->name('trainer.logout');
     });
@@ -171,8 +174,19 @@ Route::middleware('auth')->group(function () {
     Route::resource('calendar', CalendarController::class);
     Route::post('/calendar/{id}', [CalendarController::class, 'update'])->name('calendar.update');
 
-    // Settings
-    Route::resource('settings', SettingsController::class);
+    // Settings - Role-specific
+    Route::middleware(['auth'])->group(function () {
+        // Client Settings
+        Route::get('/settings', [\App\Http\Controllers\Client\SettingsController::class, 'index'])
+            ->name('client.settings.index')
+            ->middleware('role:client');
+        Route::put('/settings', [\App\Http\Controllers\Client\SettingsController::class, 'update'])
+            ->name('client.settings.update')
+            ->middleware('role:client');
+
+        // Trainer Settings (already defined in trainer group, but good to have a dedicated section)
+        // Note: The trainer settings routes are within the 'trainer.' prefix group.
+    });
 
     // Profile
     Route::get('/profile', [ProfileController::class, 'index'])->name('profile.index');
