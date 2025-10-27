@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Trainer;
 
+use App\Enums\ProgramAssignmentStatus;
 use App\Http\Controllers\Controller;
 use App\Models\ProgramAssignment;
 use App\Models\Notification;
@@ -50,7 +51,7 @@ class TrainerAssignmentController extends Controller
         DB::transaction(function () use ($assignment) {
             // Update assignment status
             $assignment->update([
-                'status' => ProgramAssignment::STATUS_ACTIVE,
+                'status' => ProgramAssignmentStatus::ACTIVE,
                 'start_date' => now(),
             ]);
 
@@ -104,7 +105,7 @@ class TrainerAssignmentController extends Controller
         DB::transaction(function () use ($assignment, $request) {
             // Update assignment status
             $assignment->update([
-                'status' => ProgramAssignment::STATUS_REJECTED,
+                'status' => ProgramAssignmentStatus::REJECTED,
                 'notes' => $request->reason,
             ]);
 

@@ -55,15 +55,35 @@
                                 <span class="badge bg-{{ $program->difficulty_level == 'beginner' ? 'success' : ($program->difficulty_level == 'intermediate' ? 'warning' : 'danger') }} ms-2">{{ ucfirst($program->difficulty_level) }}</span>
                             </div>
                             <div class="mb-3">
+                                <strong class="text-muted">Program Category:</strong>
+                                <span class="badge bg-{{ $program->isFitnessProgram() ? 'primary' : 'success' }} ms-2">
+                                    <i class="fas fa-{{ $program->isFitnessProgram() ? 'dumbbell' : 'utensils' }} me-1"></i>
+                                    {{ $program->isFitnessProgram() ? 'Fitness' : 'Nutrition' }}
+                                </span>
+                            </div>
+                            <div class="mb-3">
                                 <strong class="text-muted">Program Type:</strong>
-                                <span class="ms-2">{{ ucfirst(str_replace('_', ' ', $program->program_type)) }}</span>
+                                <span class="ms-2">{{ ucfirst(str_replace('_', ' ', $program->program_subtype)) }}</span>
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <div class="mb-3">
-                                <strong class="text-muted">Sessions per Week:</strong>
-                                <span class="ms-2">{{ $program->sessions_per_week }}</span>
-                            </div>
+                            @if($program->isFitnessProgram())
+                                <div class="mb-3">
+                                    <strong class="text-muted">Sessions per Week:</strong>
+                                    <span class="ms-2">{{ $program->sessions_per_week }}</span>
+                                </div>
+                            @else
+                                <div class="mb-3">
+                                    <strong class="text-muted">Meals per Day:</strong>
+                                    <span class="ms-2">{{ $program->meals_per_day }}</span>
+                                </div>
+                                @if($program->calorie_target)
+                                <div class="mb-3">
+                                    <strong class="text-muted">Daily Calories:</strong>
+                                    <span class="ms-2">{{ $program->calorie_target }} kcal</span>
+                                </div>
+                                @endif
+                            @endif
                             <div class="mb-3">
                                 <strong class="text-muted">Status:</strong>
                                 <span class="badge bg-{{ $program->status == 'published' ? 'success' : ($program->status == 'draft' ? 'secondary' : 'warning') }} ms-2">{{ ucfirst($program->status) }}</span>
@@ -88,65 +108,165 @@
                 </div>
             </div>
 
-            <!-- Program Schedule/Workouts -->
+            <!-- Program Schedule/Workouts OR Nutrition Plan/Meals -->
             <div class="card shadow-sm mb-4">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">Workout Schedule</h5>
-                    <a href="{{ route('trainer.programs.workouts.create', $program->id) }}" class="btn btn-sm btn-outline-primary">
-                        <i class="fas fa-plus me-1"></i> Add Workout
-                    </a>
-                </div>
-                <div class="card-body">
-                    @if($program->workouts && $program->workouts->count())
-                        <div class="list-group">
-                            @foreach($program->workouts->sortBy('workout_date') as $workout)
-                            <div class="list-group-item d-flex justify-content-between align-items-center">
-                                <div>
-                                    <h6 class="mb-1">{{ $workout->name }}</h6>
-                                    <p class="mb-1 text-muted small">
-                                        {{ ucfirst($workout->type) }} • {{ ucfirst($workout->difficulty) }} •
-                                        {{ $workout->workout_date->format('M j, Y') }}
-                                        @if($workout->duration_minutes)
-                                            • {{ $workout->duration_minutes }} minutes
+                @if($program->isFitnessProgram())
+                    <!-- Fitness Program: Workout Schedule -->
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="fas fa-dumbbell me-2"></i>Workout Schedule</h5>
+                        <a href="{{ route('trainer.programs.workouts.create', $program->id) }}" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-plus me-1"></i> Add Workout
+                        </a>
+                    </div>
+                    <div class="card-body">
+                        @if($program->workouts && $program->workouts->count())
+                            <div class="list-group">
+                                @foreach($program->workouts->sortBy('workout_date') as $workout)
+                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-1">{{ $workout->name }}</h6>
+                                        <p class="mb-1 text-muted small">
+                                            {{ ucfirst($workout->type) }} • {{ ucfirst($workout->difficulty) }} •
+                                            {{ $workout->workout_date->format('M j, Y') }}
+                                            @if($workout->duration_minutes)
+                                                • {{ $workout->duration_minutes }} minutes
+                                            @endif
+                                        </p>
+                                        @if($workout->description)
+                                            <p class="mb-0 text-muted small">{{ Str::limit($workout->description, 100) }}</p>
                                         @endif
-                                    </p>
-                                    @if($workout->description)
-                                        <p class="mb-0 text-muted small">{{ Str::limit($workout->description, 100) }}</p>
-                                    @endif
+                                    </div>
+                                    <div class="d-flex gap-2">
+                                        <span class="badge bg-{{ $workout->status == 'completed' ? 'success' : ($workout->status == 'in_progress' ? 'warning' : 'secondary') }} mt-2">
+                                            {{ ucfirst(str_replace('_', ' ', $workout->status)) }}
+                                        </span>
+                                        <div class="dropdown">
+                                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                                <i class="fas fa-ellipsis-v"></i>
+                                            </button>
+                                            <ul class="dropdown-menu">
+                                                <li><a class="dropdown-item" href="{{ route('trainer.programs.workouts.edit', [$program->id, $workout->id]) }}">
+                                                    <i class="fas fa-edit me-2"></i> Edit
+                                                </a></li>
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li><a class="dropdown-item text-danger" href="#" onclick="deleteWorkout({{ $workout->id }})">
+                                                    <i class="fas fa-trash me-2"></i> Delete
+                                                </a></li>
+                                            </ul>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="d-flex gap-2">
-                                    <span class="badge bg-{{ $workout->status == 'completed' ? 'success' : ($workout->status == 'in_progress' ? 'warning' : 'secondary') }} mt-2">
-                                        {{ ucfirst(str_replace('_', ' ', $workout->status)) }}
-                                    </span>
-                                    <div class="dropdown">
-                                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                                            <i class="fas fa-ellipsis-v"></i>
-                                        </button>
-                                        <ul class="dropdown-menu">
-                                            <li><a class="dropdown-item" href="{{ route('trainer.programs.workouts.edit', [$program->id, $workout->id]) }}">
-                                                <i class="fas fa-edit me-2"></i> Edit
-                                            </a></li>
-                                            <li><hr class="dropdown-divider"></li>
-                                            <li><a class="dropdown-item text-danger" href="#" onclick="deleteWorkout({{ $workout->id }})">
-                                                <i class="fas fa-trash me-2"></i> Delete
-                                            </a></li>
-                                        </ul>
+                                @endforeach
+                            </div>
+                        @else
+                            <div class="text-center py-4">
+                                <i class="fas fa-dumbbell fa-3x text-muted mb-3"></i>
+                                <h5 class="text-muted">No workouts added yet</h5>
+                                <p class="text-muted">Start building your program by adding workouts</p>
+                                <a href="{{ route('trainer.programs.workouts.create', $program->id) }}" class="btn btn-primary">
+                                    <i class="fas fa-plus me-1"></i> Add First Workout
+                                </a>
+                            </div>
+                        @endif
+                    </div>
+                @else
+                    <!-- Nutrition Program: Meal Plan -->
+                    <div class="card-header d-flex justify-content-between align-items-center bg-success text-white">
+                        <h5 class="mb-0"><i class="fas fa-utensils me-2"></i>Nutrition Plan & Meals</h5>
+                        <a href="{{ route('trainer.programs.nutrition-plan.show', $program->id) }}" class="btn btn-sm btn-light">
+                            <i class="fas fa-edit me-1"></i> Manage Meals
+                        </a>
+                    </div>
+                    <div class="card-body">
+                        @if($program->nutritionPlan && $program->nutritionPlan->meals->count() > 0)
+                            <!-- Nutrition Plan Summary -->
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-3">
+                                    <div class="text-center p-3 bg-light rounded">
+                                        <div class="h4 mb-0 text-success">{{ $program->nutritionPlan->meals->count() }}</div>
+                                        <small class="text-muted">Total Meals</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="text-center p-3 bg-light rounded">
+                                        <div class="h4 mb-0 text-success">{{ $program->calorie_target ?? 'N/A' }}</div>
+                                        <small class="text-muted">Daily Calories</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="text-center p-3 bg-light rounded">
+                                        <div class="h4 mb-0 text-success">{{ $program->meals_per_day }}</div>
+                                        <small class="text-muted">Meals/Day</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="text-center p-3 bg-light rounded">
+                                        <div class="h4 mb-0 text-success">{{ $program->duration_weeks * 7 }}</div>
+                                        <small class="text-muted">Program Days</small>
                                     </div>
                                 </div>
                             </div>
-                            @endforeach
-                        </div>
-                    @else
-                        <div class="text-center py-4">
-                            <i class="fas fa-dumbbell fa-3x text-muted mb-3"></i>
-                            <h5 class="text-muted">No workouts added yet</h5>
-                            <p class="text-muted">Start building your program by adding workouts</p>
-                            <a href="{{ route('trainer.programs.workouts.create', $program->id) }}" class="btn btn-primary">
-                                <i class="fas fa-plus me-1"></i> Add First Workout
-                            </a>
-                        </div>
-                    @endif
-                </div>
+
+                            @if($program->macros_target)
+                            <div class="mb-4">
+                                <h6 class="mb-2"><i class="fas fa-chart-pie me-2"></i>Daily Macro Targets:</h6>
+                                <div class="d-flex gap-2 flex-wrap">
+                                    <span class="badge bg-primary">Protein: {{ $program->macros_target['protein'] ?? 0 }}g</span>
+                                    <span class="badge bg-warning text-dark">Carbs: {{ $program->macros_target['carbs'] ?? 0 }}g</span>
+                                    <span class="badge bg-info">Fats: {{ $program->macros_target['fats'] ?? 0 }}g</span>
+                                    @if(isset($program->macros_target['fiber']))
+                                    <span class="badge bg-secondary">Fiber: {{ $program->macros_target['fiber'] }}g</span>
+                                    @endif
+                                </div>
+                            </div>
+                            @endif
+
+                            <!-- Recent Meals Preview -->
+                            <h6 class="mb-3"><i class="fas fa-list me-2"></i>Recent Meals:</h6>
+                            <div class="list-group">
+                                @foreach($program->nutritionPlan->meals->take(5) as $meal)
+                                <div class="list-group-item">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <h6 class="mb-1">{{ $meal->name }}</h6>
+                                            <p class="mb-1 text-muted small">
+                                                <span class="badge bg-secondary">{{ $meal->getMealTypeLabel() }}</span>
+                                                <span class="ms-2">Day {{ $meal->day_number }}</span>
+                                                @if($meal->meal_time)
+                                                    <span class="ms-2">• {{ \Carbon\Carbon::parse($meal->meal_time)->format('g:i A') }}</span>
+                                                @endif
+                                            </p>
+                                            <p class="mb-0 text-muted small">
+                                                {{ $meal->getMacrosSummary() }} • {{ $meal->calories }} kcal
+                                                @if($meal->ingredients)
+                                                    • {{ count($meal->ingredients) }} ingredients
+                                                @endif
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                                @endforeach
+                            </div>
+
+                            @if($program->nutritionPlan->meals->count() > 5)
+                            <div class="text-center mt-3">
+                                <a href="{{ route('trainer.programs.nutrition-plan.show', $program->id) }}" class="btn btn-outline-success">
+                                    <i class="fas fa-eye me-1"></i> View All {{ $program->nutritionPlan->meals->count() }} Meals
+                                </a>
+                            </div>
+                            @endif
+                        @else
+                            <div class="text-center py-4">
+                                <i class="fas fa-utensils fa-3x text-success mb-3 opacity-50"></i>
+                                <h5 class="text-muted">No meals added yet</h5>
+                                <p class="text-muted">Start building your nutrition program by adding meals</p>
+                                <a href="{{ route('trainer.programs.nutrition-plan.show', $program->id) }}" class="btn btn-success">
+                                    <i class="fas fa-plus me-1"></i> Add First Meal
+                                </a>
+                            </div>
+                        @endif
+                    </div>
+                @endif
             </div>
 
             <!-- Program Progress -->

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\ProgramAssignmentStatus;
 use App\Models\ClientProfile;
 use App\Models\Program;
 use App\Models\ProgramAssignment;
@@ -156,7 +157,7 @@ class ClientProgramController extends Controller
                     'client_id' => $client->id,
                     'program_id' => $program->id,
                     'assigned_date' => now(),
-                    'status' => ProgramAssignment::STATUS_PENDING,
+                    'status' => ProgramAssignmentStatus::PENDING,
                     'current_week' => 1,
                     'current_session' => 1,
                     'progress_percentage' => 0,

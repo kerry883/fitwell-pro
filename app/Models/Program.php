@@ -2,10 +2,12 @@
 
 namespace App\Models;
 
+use App\Enums\ProgramCategory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Program extends Model
 {
@@ -13,14 +15,21 @@ class Program extends Model
 
     protected $fillable = [
         'trainer_id',
+        'program_category',
+        'program_subtype',
         'name',
         'description',
         'duration_weeks',
         'difficulty_level',
-        'program_type',
         'sessions_per_week',
+        'meals_per_day',
         'goals',
+        'dietary_preferences',
+        'macros_target',
+        'calorie_target',
         'equipment_required',
+        'includes_meal_prep',
+        'includes_shopping_list',
         'is_public',
         'status',
         'max_clients',
@@ -30,9 +39,14 @@ class Program extends Model
     ];
 
     protected $casts = [
+        'program_category' => ProgramCategory::class,
         'goals' => 'array',
+        'dietary_preferences' => 'array',
+        'macros_target' => 'array',
         'equipment_required' => 'array',
         'is_public' => 'boolean',
+        'includes_meal_prep' => 'boolean',
+        'includes_shopping_list' => 'boolean',
         'price' => 'decimal:2',
     ];
 
@@ -59,9 +73,24 @@ class Program extends Model
         return $this->hasMany(Workout::class);
     }
 
+    public function nutritionPlan(): HasOne
+    {
+        return $this->hasOne(NutritionPlan::class);
+    }
+
     /**
      * Helper methods
      */
+    public function isFitnessProgram(): bool
+    {
+        return $this->program_category === ProgramCategory::FITNESS;
+    }
+
+    public function isNutritionProgram(): bool
+    {
+        return $this->program_category === ProgramCategory::NUTRITION;
+    }
+
     public function getActiveClientsCountAttribute()
     {
         return $this->assignments()->where('status', 'active')->count();
@@ -77,6 +106,9 @@ class Program extends Model
         return !$this->isFull() && $this->status === 'published';
     }
 
+    /**
+     * Scopes
+     */
     public function scopePublished($query)
     {
         return $query->where('status', 'published');
@@ -90,5 +122,15 @@ class Program extends Model
     public function scopePublic($query)
     {
         return $query->where('is_public', true);
+    }
+
+    public function scopeFitness($query)
+    {
+        return $query->where('program_category', ProgramCategory::FITNESS);
+    }
+
+    public function scopeNutrition($query)
+    {
+        return $query->where('program_category', ProgramCategory::NUTRITION);
     }
 }

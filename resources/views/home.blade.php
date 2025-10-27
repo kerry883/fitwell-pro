@@ -10,7 +10,10 @@
     <!-- Fonts - Using Figtree -->
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:300,400,500,600,700,800&display=swap" rel="stylesheet" />
-    
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
@@ -376,7 +379,7 @@
     </nav>
 
     <!-- Enhanced Hero Section with Particles -->
-    <section class="hero-section flex items-center">
+    <section class="hero-section flex items-center pt-16">
         <div id="particles-js"></div>
         <div class="container mx-auto px-4 sm:px-6 lg:px-8 hero-content">
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
@@ -1299,18 +1302,33 @@
                 ],
 
                 init() {
-                    // Initialize AOS
-                    AOS.init({
-                        duration: 1000,
-                        once: true,
-                        offset: 100
-                    });
+                    // Initialize AOS with a small delay to ensure DOM is ready
+                    setTimeout(() => {
+                        AOS.init({
+                            duration: 1000,
+                            once: true,
+                            offset: 50,
+                            disable: false,
+                            startEvent: 'DOMContentLoaded',
+                            initClassName: 'aos-init',
+                            animatedClassName: 'aos-animate',
+                            useClassNames: false,
+                            disableMutationObserver: false,
+                            debounceDelay: 50,
+                            throttleDelay: 99
+                        });
+                        
+                        // Refresh AOS to ensure elements are detected
+                        AOS.refresh();
+                    }, 100);
 
                     // Initialize particles
                     this.initParticles();
 
-                    // Animate counters
-                    this.animateCounters();
+                    // Animate counters with a delay
+                    setTimeout(() => {
+                        this.animateCounters();
+                    }, 500);
 
                     // Handle navbar scrolling
                     this.handleNavbarScroll();

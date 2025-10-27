@@ -41,11 +41,11 @@
                                         {{ $assignment->program->name }}
                                     </p>
                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                                        @if($assignment->status === 'active') bg-green-100 text-green-800
-                                        @elseif($assignment->status === 'pending') bg-yellow-100 text-yellow-800
-                                        @elseif($assignment->status === 'completed') bg-blue-100 text-blue-800
+                                        @if($assignment->status->value === 'active') bg-green-100 text-green-800
+                                        @elseif($assignment->status->value === 'pending') bg-yellow-100 text-yellow-800
+                                        @elseif($assignment->status->value === 'completed') bg-blue-100 text-blue-800
                                         @else bg-red-100 text-red-800 @endif">
-                                        {{ ucfirst($assignment->status) }}
+                                        {{ ucfirst($assignment->status->value) }}
                                     </span>
                                 </div>
                                 <p class="text-sm text-gray-500">
@@ -88,7 +88,7 @@
                     </div>
 
                     <!-- Progress Bar -->
-                    @if($assignment->status === 'active')
+                    @if($assignment->status->value === 'active')
                         <div class="mt-4">
                             <div class="flex items-center justify-between text-xs text-gray-500 mb-1">
                                 <span>Progress</span>

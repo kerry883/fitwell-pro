@@ -1,0 +1,206 @@
+/* Notification Dropdown Animations */
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOutRight {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
+
+/* Notification Badge Pulse Animation */
+
+.notification-badge {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+    0%,
+    100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
+}
+
+
+/* Notification Item Hover Effects */
+
+.notification-item {
+    transition: all 0.2s ease-in-out;
+}
+
+.notification-item:hover {
+    transform: translateX(2px);
+}
+
+
+/* Custom Scrollbar for Notifications */
+
+.notifications-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.notifications-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+.notifications-container::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 10px;
+}
+
+.notifications-container::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+
+/* Bootstrap Notification Dropdown Styles */
+
+.notification-dropdown {
+    min-width: 350px;
+    max-width: 400px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.notification-dropdown .notification-item {
+    transition: background-color 0.15s ease-in-out;
+}
+
+.notification-dropdown .notification-item:hover {
+    background-color: rgba(0, 0, 0, 0.02);
+}
+
+.notification-dropdown .notification-item:last-child {
+    border-bottom: none;
+}
+
+
+/* Unread notification indicator */
+
+.notification-item.unread {
+    position: relative;
+}
+
+.notification-item.unread::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: linear-gradient(to bottom, #10b981, #06b6d4);
+}
+
+
+/* Notification icon colors for Bootstrap */
+
+.bg-blue-subtle {
+    background-color: rgba(13, 110, 253, 0.1) !important;
+}
+
+.text-blue {
+    color: #0d6efd !important;
+}
+
+.bg-green-subtle {
+    background-color: rgba(25, 135, 84, 0.1) !important;
+}
+
+.text-green {
+    color: #198754 !important;
+}
+
+.bg-red-subtle {
+    background-color: rgba(220, 53, 69, 0.1) !important;
+}
+
+.text-red {
+    color: #dc3545 !important;
+}
+
+.bg-orange-subtle {
+    background-color: rgba(253, 126, 20, 0.1) !important;
+}
+
+.text-orange {
+    color: #fd7e14 !important;
+}
+
+.bg-purple-subtle {
+    background-color: rgba(111, 66, 193, 0.1) !important;
+}
+
+.text-purple {
+    color: #6f42c1 !important;
+}
+
+.bg-indigo-subtle {
+    background-color: rgba(102, 16, 242, 0.1) !important;
+}
+
+.text-indigo {
+    color: #6610f2 !important;
+}
+
+.bg-teal-subtle {
+    background-color: rgba(32, 201, 151, 0.1) !important;
+}
+
+.text-teal {
+    color: #20c997 !important;
+}
+
+.bg-pink-subtle {
+    background-color: rgba(214, 51, 132, 0.1) !important;
+}
+
+.text-pink {
+    color: #d63384 !important;
+}
+
+.bg-yellow-subtle {
+    background-color: rgba(255, 193, 7, 0.1) !important;
+}
+
+.text-yellow {
+    color: #ffc107 !important;
+}
+
+.bg-gray-subtle {
+    background-color: rgba(108, 117, 125, 0.1) !important;
+}
+
+.text-gray {
+    color: #6c757d !important;
+}
+
+
+/* Loading spinner animation */
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.animate-spin {
+    animation: spin 1s linear infinite;
+}

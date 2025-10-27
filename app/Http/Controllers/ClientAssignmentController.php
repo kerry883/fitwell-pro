@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\ProgramAssignmentStatus;
 use App\Models\ProgramAssignment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -80,7 +81,7 @@ class ClientAssignmentController extends Controller
         DB::transaction(function () use ($assignment, $request, $client) {
             // Update assignment status
             $assignment->update([
-                'status' => ProgramAssignment::STATUS_REJECTED,
+                'status' => ProgramAssignmentStatus::REJECTED,
                 'notes' => $request->reason ? 'Client withdrawal: ' . $request->reason : 'Client withdrew from program',
             ]);
 
@@ -191,7 +192,7 @@ class ClientAssignmentController extends Controller
         $client = Auth::user()->clientProfile;
 
         $assignment = ProgramAssignment::where('client_id', $client->id)
-            ->where('status', ProgramAssignment::STATUS_ACTIVE)
+            ->where('status', ProgramAssignmentStatus::ACTIVE)
             ->findOrFail($id);
 
         $oldProgress = $assignment->progress_percentage;

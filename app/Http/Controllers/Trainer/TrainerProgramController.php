@@ -2,11 +2,15 @@
 
 namespace App\Http\Controllers\Trainer;
 
+use App\Enums\FitnessProgramSubtype;
+use App\Enums\NutritionProgramSubtype;
+use App\Enums\ProgramCategory;
 use App\Http\Controllers\Controller;
 use App\Models\Program;
 use App\Models\Workout;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class TrainerProgramController extends Controller
 {
@@ -29,7 +33,11 @@ class TrainerProgramController extends Controller
      */
     public function create()
     {
-        return view('trainer.programs.create');
+        return view('trainer.programs.create', [
+            'fitnessSubtypes' => FitnessProgramSubtype::cases(),
+            'nutritionSubtypes' => NutritionProgramSubtype::cases(),
+            'programCategories' => ProgramCategory::cases(),
+        ]);
     }
 
     /**
@@ -37,42 +45,86 @@ class TrainerProgramController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
+        // Base validation rules
+        $rules = [
+            'program_category' => 'required|in:fitness,nutrition',
+            'program_subtype' => 'required|string',
             'name' => 'required|string|max:255',
             'description' => 'required|string',
             'duration_weeks' => 'required|integer|min:1|max:52',
             'difficulty_level' => 'required|in:beginner,intermediate,advanced',
-            'program_type' => 'required|string',
-            'sessions_per_week' => 'required|integer|min:1|max:7',
             'goals' => 'nullable|array',
-            'equipment_required' => 'nullable|array',
             'is_public' => 'nullable|boolean',
             'max_clients' => 'nullable|integer|min:1',
             'price' => 'nullable|numeric|min:0',
             'notes' => 'nullable|string',
-        ]);
+        ];
+
+        // Conditional validation based on program_category
+        if ($request->program_category === 'fitness') {
+            $rules['sessions_per_week'] = 'required|integer|min:1|max:7';
+            $rules['equipment_required'] = 'nullable|array';
+        } else {
+            $rules['meals_per_day'] = 'required|integer|min:1|max:8';
+            $rules['dietary_preferences'] = 'nullable|array';
+            $rules['calorie_target'] = 'nullable|integer|min:500';
+            $rules['macros_target'] = 'nullable|array';
+            $rules['macros_target.protein'] = 'nullable|integer|min:0';
+            $rules['macros_target.carbs'] = 'nullable|integer|min:0';
+            $rules['macros_target.fats'] = 'nullable|integer|min:0';
+            $rules['includes_meal_prep'] = 'nullable|boolean';
+            $rules['includes_shopping_list'] = 'nullable|boolean';
+        }
+
+        $validated = $request->validate($rules);
 
         $trainer = Auth::user()->trainerProfile;
 
-        $program = Program::create([
-            'trainer_id' => $trainer->id,
-            'name' => $request->name,
-            'description' => $request->description,
-            'duration_weeks' => $request->duration_weeks,
-            'difficulty_level' => $request->difficulty_level,
-            'program_type' => $request->program_type,
-            'sessions_per_week' => $request->sessions_per_week,
-            'goals' => $request->goals,
-            'equipment_required' => $request->equipment_required,
-            'is_public' => $request->boolean('is_public'),
-            'max_clients' => $request->max_clients,
-            'price' => $request->price,
-            'notes' => $request->notes,
-            'status' => 'draft', // Programs start as draft
-        ]);
+        // Create program in a transaction
+        $program = DB::transaction(function () use ($validated, $request, $trainer) {
+            $program = Program::create([
+                'trainer_id' => $trainer->id,
+                'program_category' => $validated['program_category'],
+                'program_subtype' => $validated['program_subtype'],
+                'name' => $validated['name'],
+                'description' => $validated['description'],
+                'duration_weeks' => $validated['duration_weeks'],
+                'difficulty_level' => $validated['difficulty_level'],
+                'sessions_per_week' => $validated['sessions_per_week'] ?? null,
+                'meals_per_day' => $validated['meals_per_day'] ?? null,
+                'goals' => $validated['goals'] ?? null,
+                'dietary_preferences' => $validated['dietary_preferences'] ?? null,
+                'macros_target' => $validated['macros_target'] ?? null,
+                'calorie_target' => $validated['calorie_target'] ?? null,
+                'equipment_required' => $validated['equipment_required'] ?? null,
+                'includes_meal_prep' => $request->boolean('includes_meal_prep'),
+                'includes_shopping_list' => $request->boolean('includes_shopping_list'),
+                'is_public' => $request->boolean('is_public'),
+                'max_clients' => $validated['max_clients'] ?? null,
+                'price' => $validated['price'] ?? null,
+                'notes' => $validated['notes'] ?? null,
+                'status' => 'draft',
+            ]);
 
-        return redirect()->route('trainer.programs.index')
-            ->with('success', 'Program created successfully!');
+            // If nutrition program, create initial nutrition plan
+            if ($program->isNutritionProgram()) {
+                $program->nutritionPlan()->create([
+                    'name' => $program->name . ' - Nutrition Plan',
+                    'description' => $program->description,
+                    'total_calories' => $validated['calorie_target'] ?? null,
+                    'macros' => $validated['macros_target'] ?? [],
+                ]);
+            }
+
+            return $program;
+        });
+
+        $message = $program->isNutritionProgram() 
+            ? 'Nutrition program created successfully! Add meals to complete the nutrition plan.'
+            : 'Fitness program created successfully! Add workouts to complete the program.';
+
+        return redirect()->route('trainer.programs.show', $program->id)
+            ->with('success', $message);
     }
 
     /**
@@ -82,7 +134,7 @@ class TrainerProgramController extends Controller
     {
         $trainer = Auth::user()->trainerProfile;
         $program = Program::byTrainer($trainer->id)
-            ->with(['assignments.user', 'assignments.client', 'workouts'])
+            ->with(['assignments.user', 'assignments.client', 'workouts', 'nutritionPlan.meals'])
             ->findOrFail($id);
 
         $assignedClients = $program->assignments->map(function ($assignment) {
@@ -106,7 +158,12 @@ class TrainerProgramController extends Controller
         $trainer = Auth::user()->trainerProfile;
         $program = Program::byTrainer($trainer->id)->findOrFail($id);
 
-        return view('trainer.programs.edit', compact('program'));
+        return view('trainer.programs.edit', [
+            'program' => $program,
+            'fitnessSubtypes' => FitnessProgramSubtype::cases(),
+            'nutritionSubtypes' => NutritionProgramSubtype::cases(),
+            'programCategories' => ProgramCategory::cases(),
+        ]);
     }
 
     /**
@@ -114,39 +171,61 @@ class TrainerProgramController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $request->validate([
+        $trainer = Auth::user()->trainerProfile;
+        $program = Program::byTrainer($trainer->id)->findOrFail($id);
+
+        // Base validation rules
+        $rules = [
+            'program_category' => 'required|in:fitness,nutrition',
+            'program_subtype' => 'required|string',
             'name' => 'required|string|max:255',
             'description' => 'required|string',
             'duration_weeks' => 'required|integer|min:1|max:52',
             'difficulty_level' => 'required|in:beginner,intermediate,advanced',
-            'program_type' => 'required|string',
-            'sessions_per_week' => 'required|integer|min:1|max:7',
             'goals' => 'nullable|array',
-            'equipment_required' => 'nullable|array',
             'is_public' => 'nullable|boolean',
             'max_clients' => 'nullable|integer|min:1',
             'price' => 'nullable|numeric|min:0',
             'notes' => 'nullable|string',
             'status' => 'required|in:draft,published,archived',
-        ]);
+        ];
 
-        $trainer = Auth::user()->trainerProfile;
-        $program = Program::byTrainer($trainer->id)->findOrFail($id);
+        // Conditional validation based on program_category
+        if ($request->program_category === 'fitness') {
+            $rules['sessions_per_week'] = 'required|integer|min:1|max:7';
+            $rules['equipment_required'] = 'nullable|array';
+        } else {
+            $rules['meals_per_day'] = 'required|integer|min:1|max:8';
+            $rules['dietary_preferences'] = 'nullable|array';
+            $rules['calorie_target'] = 'nullable|integer|min:500';
+            $rules['macros_target'] = 'nullable|array';
+            $rules['includes_meal_prep'] = 'nullable|boolean';
+            $rules['includes_shopping_list'] = 'nullable|boolean';
+        }
+
+        $validated = $request->validate($rules);
 
         $program->update([
-            'name' => $request->name,
-            'description' => $request->description,
-            'duration_weeks' => $request->duration_weeks,
-            'difficulty_level' => $request->difficulty_level,
-            'program_type' => $request->program_type,
-            'sessions_per_week' => $request->sessions_per_week,
-            'goals' => $request->goals,
-            'equipment_required' => $request->equipment_required,
+            'program_category' => $validated['program_category'],
+            'program_subtype' => $validated['program_subtype'],
+            'name' => $validated['name'],
+            'description' => $validated['description'],
+            'duration_weeks' => $validated['duration_weeks'],
+            'difficulty_level' => $validated['difficulty_level'],
+            'sessions_per_week' => $validated['sessions_per_week'] ?? null,
+            'meals_per_day' => $validated['meals_per_day'] ?? null,
+            'goals' => $validated['goals'] ?? null,
+            'dietary_preferences' => $validated['dietary_preferences'] ?? null,
+            'macros_target' => $validated['macros_target'] ?? null,
+            'calorie_target' => $validated['calorie_target'] ?? null,
+            'equipment_required' => $validated['equipment_required'] ?? null,
+            'includes_meal_prep' => $request->boolean('includes_meal_prep'),
+            'includes_shopping_list' => $request->boolean('includes_shopping_list'),
             'is_public' => $request->boolean('is_public'),
-            'max_clients' => $request->max_clients,
-            'price' => $request->price,
-            'notes' => $request->notes,
-            'status' => $request->status,
+            'max_clients' => $validated['max_clients'] ?? null,
+            'price' => $validated['price'] ?? null,
+            'notes' => $validated['notes'] ?? null,
+            'status' => $validated['status'],
         ]);
 
         return redirect()->route('trainer.programs.show', $id)

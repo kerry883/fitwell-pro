@@ -252,7 +252,7 @@
                             <div class="col-auto">
                                 <div class="d-flex align-items-center gap-3">
                                     <!-- Notifications -->
-                                    <x-trainer-notification-dropdown />
+                                    <x-notification-dropdown-unified theme="trainer" />
 
                                     <!-- Profile Dropdown -->
                                     <div class="dropdown">

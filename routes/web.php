@@ -25,6 +25,8 @@ use App\Http\Controllers\Trainer\TrainerAssignmentController;
 use App\Http\Controllers\Trainer\ClientNoteController;
 use App\Http\Controllers\Trainer\ClientScheduleController;
 use App\Http\Controllers\Trainer\GoalController;
+use App\Http\Controllers\Trainer\NutritionPlanController;
+use App\Http\Controllers\Trainer\MealController;
 use App\Http\Controllers\Auth\OtpVerificationController;
 use App\Http\Controllers\NotificationController;
 use Illuminate\Support\Facades\Route;
@@ -126,6 +128,17 @@ Route::middleware('auth')->group(function () {
             Route::get('workouts/{workout}/edit', [TrainerProgramController::class, 'editWorkout'])->name('workouts.edit');
             Route::patch('workouts/{workout}', [TrainerProgramController::class, 'updateWorkout'])->name('workouts.update');
             Route::delete('workouts/{workout}', [TrainerProgramController::class, 'destroyWorkout'])->name('workouts.destroy');
+            
+            // Nutrition Plans Management
+            Route::get('nutrition-plan', [NutritionPlanController::class, 'show'])->name('nutrition-plan.show');
+            Route::patch('nutrition-plan', [NutritionPlanController::class, 'update'])->name('nutrition-plan.update');
+            Route::delete('nutrition-plan', [NutritionPlanController::class, 'destroy'])->name('nutrition-plan.destroy');
+            
+            // Meals Management
+            Route::post('meals', [MealController::class, 'store'])->name('meals.store');
+            Route::patch('meals/{meal}', [MealController::class, 'update'])->name('meals.update');
+            Route::delete('meals/{meal}', [MealController::class, 'destroy'])->name('meals.destroy');
+            Route::post('meals/{meal}/duplicate', [MealController::class, 'duplicate'])->name('meals.duplicate');
         });
 
         // Trainer Schedule Management

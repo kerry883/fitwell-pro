@@ -8,5 +8,6 @@ enum ProgramAssignmentStatus: string
     case ACTIVE = 'active';
     case DEACTIVATED = 'deactivated';
     case COMPLETED = 'completed';
+    case REJECTED = 'rejected';
     case PENDING_PAYMENT = 'pending_payment';
 }
