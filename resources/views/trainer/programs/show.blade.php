@@ -115,7 +115,7 @@
                                     @endif
                                 </div>
                                 <div class="d-flex gap-2">
-                                    <span class="badge bg-{{ $workout->status == 'completed' ? 'success' : ($workout->status == 'in_progress' ? 'warning' : 'secondary') }}">
+                                    <span class="badge bg-{{ $workout->status == 'completed' ? 'success' : ($workout->status == 'in_progress' ? 'warning' : 'secondary') }} mt-2">
                                         {{ ucfirst(str_replace('_', ' ', $workout->status)) }}
                                     </span>
                                     <div class="dropdown">

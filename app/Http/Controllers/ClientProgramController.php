@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ClientProfile;
 use App\Models\Program;
 use App\Models\ProgramAssignment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class ClientProgramController extends Controller
 {
@@ -89,31 +91,113 @@ class ClientProgramController extends Controller
                 ->with('error', 'This program is currently full or not accepting enrollments.');
         }
 
+        
         DB::transaction(function () use ($program, $client) {
-            // Create program assignment with pending status
-            $assignment = ProgramAssignment::create([
+            // Add logging for debugging trainer_id assignment
+            Log::info('Enrollment transaction started', [
                 'client_id' => $client->id,
                 'program_id' => $program->id,
-                'assigned_date' => now(),
-                'status' => ProgramAssignment::STATUS_PENDING,
-                'current_week' => 1,
-                'current_session' => 1,
-                'progress_percentage' => 0,
+                'program_trainer_id' => $program->trainer_id,
+                'program_trainer_user_id' => $program->trainer ? $program->trainer->user_id : null,
+                'program_trainer_exists' => $program->trainer ? true : false,
+                'program_trainer_user_exists' => $program->trainer && $program->trainer->user ? true : false,
+                'current_client_trainer_id' => $client->trainer_id,
+                'current_client_trainer_count' => $client->trainer_count,
             ]);
 
-            // Create notification for trainer
-            $trainer = $program->trainer->user;
-            \App\Models\Notification::create([
-                'user_id' => $trainer->id,
-                'type' => 'enrollment_request',
-                'title' => 'New Program Enrollment Request',
-                'message' => "Client {$client->user->full_name} has requested to enroll in your program '{$program->name}'.",
-                'data' => [
-                    'program_id' => $program->id,
+            // Verify trainer exists before proceeding
+            if (!$program->trainer || !$program->trainer->user) {
+                throw new \Exception('Program trainer not found. Cannot process enrollment.');
+            }
+
+            // Find Existing cancelled assignment
+            $existingAssignment = ProgramAssignment::where('client_id', $client->id)
+                ->where('program_id', $program->id)
+                ->where('status', 'cancelled')
+                ->first();
+
+            if ($existingAssignment) {
+                $existingAssignment->update([
+                    'status' => 'pending',
+                    'assigned_date' => now(),
+                    'current_week' => 1,
+                    'current_session' => 0,
+                    'notes' => null, //clear withdrawal notes if any is available
+                ]);
+
+                // Check if client already has active assignments with this trainer
+                $hasExistingTrainerRelationship = ProgramAssignment::where('client_id', $client->id)
+                    ->where('program_id', '!=', $program->id)
+                    ->whereHas('program', function ($query) use ($program) {
+                        $query->where('trainer_id', $program->trainer->id); // Use trainer profile id for comparison
+                    })
+                    ->whereIn('status', ['active', 'pending'])
+                    ->exists();
+
+                // Only update trainer relationship if this is a new trainer for the client
+                if (!$hasExistingTrainerRelationship) {
+                    Log::info('Updating client trainer_id for re-enrollment', [
+                        'client_id' => $client->id,
+                        'new_trainer_id' => $program->trainer->user_id, // Use trainer user_id, not trainer profile id
+                        'current_trainer_id' => $client->trainer_id,
+                        'trainer_count_before' => $client->trainer_count,
+                        'trainer_count_after' => $client->trainer_count + 1,
+                    ]);
+                    $client->update([
+                        'trainer_id' => $program->trainer->user_id, // Use trainer user_id, not trainer profile id
+                        'trainer_count' => $client->trainer_count + 1,
+                    ]);
+                }
+
+                return redirect()->back()->with('success', 'Successfully re-enrolled in program!');
+            } else {
+                // Create program assignment with pending status
+                $assignment = ProgramAssignment::create([
                     'client_id' => $client->id,
-                    'assignment_id' => $assignment->id,
-                ],
-            ]);
+                    'program_id' => $program->id,
+                    'assigned_date' => now(),
+                    'status' => ProgramAssignment::STATUS_PENDING,
+                    'current_week' => 1,
+                    'current_session' => 1,
+                    'progress_percentage' => 0,
+                ]);
+
+                // Check if client already has active assignments with this trainer
+                $hasExistingTrainerRelationship = ProgramAssignment::where('client_id', $client->id)
+                    ->whereHas('program', function ($query) use ($program) {
+                        $query->where('trainer_id', $program->trainer->id); // Use trainer profile id for comparison
+                    })
+                    ->whereIn('status', ['active', 'pending'])
+                    ->exists();
+
+                // Only update trainer relationship if this is a new trainer for the client
+                if (!$hasExistingTrainerRelationship) {
+                    $client->update([
+                        'trainer_id' => $program->trainer->user_id, // Use trainer user_id, not trainer profile id
+                        'trainer_count' => $client->trainer_count + 1,
+                    ]);
+                }
+
+                // Create notification for trainer
+                $trainer = $program->trainer->user;
+                $notification = \App\Models\Notification::create([
+                    'user_id' => $trainer->id,
+                    'type' => 'enrollment_request',
+                    'title' => 'New Program Enrollment Request',
+                    'message' => "Client {$client->user->full_name} has requested to enroll in your program '{$program->name}'.",
+                    'data' => [
+                        'program_id' => $program->id,
+                        'user_id' => $client->user->id,
+                        'client_id' => $client->id,
+                        'assignment_id' => $assignment->id,
+                    ],
+                ]);
+
+                // Broadcast the notification
+                broadcast(new \App\Events\NotificationCreated($notification))->toOthers();
+
+                return redirect()->back()->with('success', 'Successfully enrolled in program');
+            }
         });
 
         return redirect()->route('client.assignments.index')

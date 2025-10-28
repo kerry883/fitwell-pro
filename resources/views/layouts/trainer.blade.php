@@ -18,6 +18,7 @@
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
     <!-- Custom Trainer Styles -->
     <style>
         :root {
@@ -120,11 +121,59 @@
         .progress-on-track {
             color: var(--trainer-accent);
         }
+
+        /* Notification Dropdown Specific Styles */
+        .dropdown-menu.notification-dropdown {
+            position: absolute !important;
+            z-index: 1050 !important;
+            will-change: transform;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1) !important;
+        }
+
+        .notification-item {
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .notification-item:hover {
+            background-color: #f8f9fa !important;
+            transform: translateX(2px);
+        }
+
+        .notification-badge {
+            font-size: 0.6rem;
+            min-width: 18px;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+        }
+
+        .toast-container {
+            z-index: 1055 !important;
+        }
+
+        /* Fix for dropdown positioning conflicts */
+        .trainer-header .dropdown {
+            position: static;
+        }
+
+        .trainer-header .dropdown-menu {
+            position: absolute;
+            right: 0;
+            left: auto;
+            transform: none;
+        }
     </style>
 
     @stack('styles')
 </head>
 <body>
+    <script>
+        window.userId = {{ auth()->id() }};
+        window.isTrainer = {{ auth()->user()->isTrainer() ? true : false }};
+    </script>
     <div class="container-fluid">
         <div class="row">
             <!-- Trainer Sidebar -->
@@ -178,7 +227,7 @@
                         
                         <!-- Logout -->
                         <div class="mt-auto pt-4">
-                            <form method="POST" action="{{ route('trainer.logout') }}">
+                            <form method="POST" action="{{ route('logout') }}">
                                 @csrf
                                 <button type="submit" class="nav-link border-0 bg-transparent w-100 text-start">
                                     <i class="bi bi-box-arrow-right me-2"></i> Logout
@@ -202,39 +251,7 @@
                             <div class="col-auto">
                                 <div class="d-flex align-items-center gap-3">
                                     <!-- Notifications -->
-                                    <div class="dropdown">
-                                        <button class="btn btn-light btn-sm position-relative" data-bs-toggle="dropdown">
-                                            <i class="bi bi-bell"></i>
-                                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem;">
-                                                3
-                                            </span>
-                                        </button>
-                                        <div class="dropdown-menu dropdown-menu-end p-0" style="width: 300px;">
-                                            <div class="p-3 border-bottom">
-                                                <h6 class="mb-0">Notifications</h6>
-                                            </div>
-                                            <div class="p-2">
-                                                <div class="d-flex align-items-center p-2 hover-light rounded">
-                                                    <div class="me-2">
-                                                        <i class="bi bi-person-plus text-primary"></i>
-                                                    </div>
-                                                    <div class="flex-grow-1">
-                                                        <small class="d-block">New client signup</small>
-                                                        <small class="text-muted">2 hours ago</small>
-                                                    </div>
-                                                </div>
-                                                <div class="d-flex align-items-center p-2 hover-light rounded">
-                                                    <div class="me-2">
-                                                        <i class="bi bi-calendar-check text-success"></i>
-                                                    </div>
-                                                    <div class="flex-grow-1">
-                                                        <small class="d-block">Session completed</small>
-                                                        <small class="text-muted">1 day ago</small>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
+                                    <x-trainer-notification-dropdown />
 
                                     <!-- Profile Dropdown -->
                                     <div class="dropdown">
@@ -256,7 +273,7 @@
                                                 <i class="bi bi-gear me-2"></i> Settings
                                             </a>
                                             <div class="dropdown-divider"></div>
-                                            <form method="POST" action="{{ route('trainer.logout') }}">
+                                            <form method="POST" action="{{ route('logout') }}">
                                                 @csrf
                                                 <button type="submit" class="dropdown-item">
                                                     <i class="bi bi-box-arrow-right me-2"></i> Logout

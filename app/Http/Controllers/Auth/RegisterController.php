@@ -44,6 +44,7 @@ class RegisterController extends Controller
         // Client-specific validation rules
         if ($request->user_type === 'client') {
             $rules = array_merge($rules, [
+                'gender' => ['nullable', 'in:male,female,other'],
                 'age' => ['nullable', 'integer', 'min:13', 'max:120'],
                 'height' => ['nullable', 'numeric', 'min:100', 'max:250'],
                 'weight' => ['nullable', 'numeric', 'min:30', 'max:300'],
@@ -75,6 +76,7 @@ class RegisterController extends Controller
                 'email' => $validated['email'],
                 'password' => Hash::make($validated['password']),
                 'user_type' => $validated['user_type'],
+                'gender' => $request->gender,
                 'age' => $request->age,
                 'height' => $request->height,
                 'weight' => $request->weight,

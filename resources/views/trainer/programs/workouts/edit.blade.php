@@ -126,13 +126,38 @@
                             </div>
                         </div>
 
-                        <div class="mb-3">
-                            <label for="calories_burned" class="form-label">Estimated Calories Burned</label>
-                            <input type="number" class="form-control @error('calories_burned') is-invalid @enderror"
-                                   id="calories_burned" name="calories_burned" value="{{ old('calories_burned', $workout->calories_burned) }}" min="0">
-                            @error('calories_burned')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="week_number" class="form-label">Week Number</label>
+                                <input type="number" class="form-control @error('week_number') is-invalid @enderror"
+                                       id="week_number" name="week_number" value="{{ old('week_number', $workout->week_number ? $workout->week_number : '') }}">
+                                @error('week_number')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="met_value" class="form-label">MET Value</label>
+                                <input type="number" class="form-control @error('met_value') is-invalid @enderror"
+                                       id="met_value" name="met_value" value="{{ old('met_value', $workout->met_value) }}" min="0" max="25" step="0.1"
+                                       placeholder="e.g., 8.0 for running">
+                                <small class="form-text text-muted">Metabolic Equivalent of Task (optional - will use default based on workout type)</small>
+                                @error('met_value')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="calories_burned" class="form-label">Estimated Calories Burned</label>
+                                <input type="number" class="form-control @error('calories_burned') is-invalid @enderror"
+                                       id="calories_burned" name="calories_burned" value="{{ old('calories_burned', $workout->calories_burned) }}" min="0">
+                                <small class="form-text text-muted">Leave blank if using MET value for automatic calculation</small>
+                                @error('calories_burned')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
                         </div>
 
                         <div class="mb-3">

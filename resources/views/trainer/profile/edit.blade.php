@@ -35,7 +35,7 @@
                             <div class="col-md-12">
                                 <div class="d-flex align-items-center">
                                     <div class="avatar-xl me-3">
-                                        <img src="{{ $profile['photo'] ?? '/images/default-avatar.png' }}" 
+                                        <img id="profile-photo-preview" src="{{ $trainer->profile_picture ? Storage::url($trainer->profile_picture) : '/images/default-avatar.png' }}" 
                                              alt="Profile Photo" class="rounded-circle" width="80" height="80"
                                              style="object-fit: cover;">
                                     </div>
@@ -52,12 +52,12 @@
                             <div class="col-md-6 mb-3">
                                 <label for="first_name" class="form-label">First Name *</label>
                                 <input type="text" class="form-control" id="first_name" name="first_name" 
-                                       value="{{ $profile['first_name'] }}" required>
+                                       value="{{ $trainer->first_name }}" required>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label for="last_name" class="form-label">Last Name *</label>
                                 <input type="text" class="form-control" id="last_name" name="last_name" 
-                                       value="{{ $profile['last_name'] }}" required>
+                                       value="{{ $trainer->last_name }}" required>
                             </div>
                         </div>
 
@@ -65,12 +65,12 @@
                             <div class="col-md-6 mb-3">
                                 <label for="email" class="form-label">Email Address *</label>
                                 <input type="email" class="form-control" id="email" name="email" 
-                                       value="{{ $profile['email'] }}" required>
+                                       value="{{ $trainer->email }}" required>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label for="phone" class="form-label">Phone Number</label>
                                 <input type="tel" class="form-control" id="phone" name="phone" 
-                                       value="{{ $profile['phone'] ?? '' }}">
+                                       value="">
                             </div>
                         </div>
 
@@ -361,20 +361,20 @@
                 </div>
                 <div class="card-body text-center">
                     <div class="avatar-xl mx-auto mb-3">
-                        <img src="{{ $profile['photo'] ?? '/images/default-avatar.png' }}" 
+                        <img src="{{ $trainer->profile_picture ? Storage::url($trainer->profile_picture) : '/images/default-avatar.png' }}" 
                              alt="Profile Photo" class="rounded-circle" width="80" height="80"
                              style="object-fit: cover;">
                     </div>
-                    <h5 class="mb-1">{{ $profile['first_name'] }} {{ $profile['last_name'] }}</h5>
-                    <p class="text-muted mb-2">{{ $profile['email'] }}</p>
+                    <h5 class="mb-1">{{ $trainer->first_name }} {{ $trainer->last_name }}</h5>
+                    <p class="text-muted mb-2">{{ $trainer->email }}</p>
                     
-                    @if(isset($profile['specializations']) && count($profile['specializations']))
+                    @if(isset($trainerProfile->specializations) && is_array($trainerProfile->specializations) && count($trainerProfile->specializations))
                     <div class="mb-3">
-                        @foreach(array_slice($profile['specializations'], 0, 3) as $spec)
+                        @foreach(array_slice($trainerProfile->specializations, 0, 3) as $spec)
                         <span class="badge bg-light text-dark me-1">{{ ucwords(str_replace('_', ' ', $spec)) }}</span>
                         @endforeach
-                        @if(count($profile['specializations']) > 3)
-                        <span class="badge bg-light text-dark">+{{ count($profile['specializations']) - 3 }} more</span>
+                        @if(count($trainerProfile->specializations) > 3)
+                        <span class="badge bg-light text-dark">+{{ count($trainerProfile->specializations) - 3 }} more</span>
                         @endif
                     </div>
                     @endif
@@ -504,6 +504,85 @@ function removePackage(button) {
         button.closest('.package-item').remove();
     }
 }
+
+// Profile photo upload handling
+document.addEventListener('DOMContentLoaded', function() {
+    const profilePhotoInput = document.getElementById('profile_photo');
+    const profilePhotoPreview = document.getElementById('profile-photo-preview');
+    
+    if (profilePhotoInput) {
+        profilePhotoInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                // Validate file size (2MB max)
+                if (file.size > 2 * 1024 * 1024) {
+                    alert('File size must be less than 2MB');
+                    e.target.value = '';
+                    return;
+                }
+                
+                // Validate file type
+                if (!file.type.match('image.*')) {
+                    alert('Please select an image file');
+                    e.target.value = '';
+                    return;
+                }
+                
+                // Preview the image
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    if (profilePhotoPreview) {
+                        profilePhotoPreview.src = event.target.result;
+                    }
+                };
+                reader.readAsDataURL(file);
+                
+                // Upload the image via AJAX
+                uploadProfilePhoto(file);
+            }
+        });
+    }
+    
+    function uploadProfilePhoto(file) {
+        const formData = new FormData();
+        formData.append('profile_photo', file);
+        formData.append('_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
+        
+        fetch('/trainer/profile/photo', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Show success message
+                const alertDiv = document.createElement('div');
+                alertDiv.className = 'alert alert-success alert-dismissible fade show';
+                alertDiv.innerHTML = `
+                    ${data.message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                `;
+                document.querySelector('.container-fluid').prepend(alertDiv);
+                
+                // Auto dismiss after 3 seconds
+                setTimeout(() => {
+                    alertDiv.classList.remove('show');
+                    setTimeout(() => alertDiv.remove(), 150);
+                }, 3000);
+            } else {
+                alert('Error uploading photo. Please try again.');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error uploading photo. Please try again.');
+        });
+    }
+});
 </script>
 @endpush
 

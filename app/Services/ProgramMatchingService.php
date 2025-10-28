@@ -75,7 +75,14 @@ class ProgramMatchingService
      */
     private function calculateGoalsMatch(ClientProfile $client, Program $program): float
     {
-        $clientGoals = $client->goals ?? [];
+        // Get client's active goals for matching
+        $clientGoals = $client->goals()
+            ->where('type', 'client_set')
+            ->where('is_active_for_matching', true)
+            ->where('status', 'active')
+            ->pluck('title')
+            ->toArray();
+
         $programGoals = $program->goals ?? [];
 
         if (empty($clientGoals) || empty($programGoals)) {

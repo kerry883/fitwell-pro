@@ -196,7 +196,9 @@ class TrainerProgramController extends Controller
             'difficulty' => 'required|in:beginner,intermediate,advanced',
             'duration_minutes' => 'nullable|integer|min:1',
             'calories_burned' => 'nullable|integer|min:0',
+            'met_value' => 'nullable|numeric|min:0|max:25',
             'workout_date' => 'required|date',
+            'week_number' => 'required|integer|min:1',
             'start_time' => 'nullable|date_format:H:i',
             'end_time' => 'nullable|date_format:H:i',
             'notes' => 'nullable|string',
@@ -204,6 +206,9 @@ class TrainerProgramController extends Controller
 
         $trainer = Auth::user()->trainerProfile;
         $program = Program::byTrainer($trainer->id)->findOrFail($programId);
+
+        // Set default MET value if not provided
+        $metValue = $request->met_value ?? Workout::getDefaultMetValues()[$request->type] ?? 4.0;
 
         Workout::create([
             'user_id' => $trainer->user_id, // Trainer's user ID
@@ -214,10 +219,12 @@ class TrainerProgramController extends Controller
             'difficulty' => $request->difficulty,
             'duration_minutes' => $request->duration_minutes,
             'calories_burned' => $request->calories_burned,
+            'met_value' => $metValue,
             'workout_date' => $request->workout_date,
             'start_time' => $request->start_time,
             'end_time' => $request->end_time,
             'status' => 'planned',
+            'week_number' => $request->week_number,
             'notes' => $request->notes,
         ]);
 
@@ -251,10 +258,12 @@ class TrainerProgramController extends Controller
             'difficulty' => 'required|in:beginner,intermediate,advanced',
             'duration_minutes' => 'nullable|integer|min:1',
             'calories_burned' => 'nullable|integer|min:0',
+            'met_value' => 'nullable|numeric|min:0|max:25',
             'workout_date' => 'required|date',
             'start_time' => 'nullable|date_format:H:i',
             'end_time' => 'nullable|date_format:H:i',
             'status' => 'required|in:planned,in_progress,completed,skipped',
+            'week_number' => 'required|integer|min:1',
             'notes' => 'nullable|string',
         ]);
 
@@ -271,10 +280,12 @@ class TrainerProgramController extends Controller
             'difficulty' => $request->difficulty,
             'duration_minutes' => $request->duration_minutes,
             'calories_burned' => $request->calories_burned,
+            'met_value' => $request->met_value ?? $workout->met_value,
             'workout_date' => $request->workout_date,
             'start_time' => $request->start_time,
             'end_time' => $request->end_time,
             'status' => $request->status,
+            'week_number' => $request->week_number,
             'notes' => $request->notes,
         ]);
 

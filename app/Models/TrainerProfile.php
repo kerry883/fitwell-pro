@@ -48,6 +48,26 @@ class TrainerProfile extends Model
             'verified_at' => 'datetime',
         ];
     }
+    
+    /**
+     * Get the specializations attribute and ensure it's always an array
+     */
+    public function getSpecializationsAttribute($value)
+    {
+        // If it's already an array, return it
+        if (is_array($value)) {
+            return $value;
+        }
+        
+        // If it's a JSON string, decode it
+        if (is_string($value)) {
+            $decoded = json_decode($value, true);
+            return is_array($decoded) ? $decoded : [];
+        }
+        
+        // Default to empty array
+        return [];
+    }
 
     /**
      * Relationships

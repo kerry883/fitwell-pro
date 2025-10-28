@@ -64,52 +64,61 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">First Name</label>
-                        <input type="text" name="first_name" value="{{ Auth::user()->first_name }}"
+                        <input type="text" name="first_name" value="{{ old('first_name', Auth::user()->first_name) }}"
                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Last Name</label>
-                        <input type="text" name="last_name" value="{{ Auth::user()->last_name }}"
+                        <input type="text" name="last_name" value="{{ old('last_name', Auth::user()->last_name) }}"
                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
-                        <input type="email" name="email" value="{{ Auth::user()->email }}"
+                        <input type="email" name="email" value="{{ old('email', Auth::user()->email) }}"
                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                     </div>
                     <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Gender</label>
+                        <select name="gender" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <option value="">Select Gender</option>
+                            <option value="male" {{ old('gender', Auth::user()->gender) == 'male' ? 'selected' : '' }}>Male</option>
+                            <option value="female" {{ old('gender', Auth::user()->gender) == 'female' ? 'selected' : '' }}>Female</option>
+                            <option value="other" {{ old('gender', Auth::user()->gender) == 'other' ? 'selected' : '' }}>Other</option>
+                        </select>
+                    </div>
+                    <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Age</label>
-                        <input type="number" name="age" value="{{ Auth::user()->age }}" min="13" max="120"
+                        <input type="number" name="age" value="{{ old('age', Auth::user()->age) }}" min="13" max="120"
                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Height (cm)</label>
-                        <input type="number" name="height" value="{{ Auth::user()->height }}" step="0.1"
+                        <input type="number" name="height" value="{{ old('height', Auth::user()->height) }}" step="0.1"
                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Weight (kg)</label>
-                        <input type="number" name="weight" value="{{ Auth::user()->weight }}" step="0.1"
+                        <input type="number" name="weight" value="{{ old('weight', Auth::user()->weight) }}" step="0.1"
                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Fitness Level</label>
                         <select name="fitness_level" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                             <option value="">Select Level</option>
-                            <option value="beginner" {{ Auth::user()->fitness_level == 'beginner' ? 'selected' : '' }}>Beginner</option>
-                            <option value="intermediate" {{ Auth::user()->fitness_level == 'intermediate' ? 'selected' : '' }}>Intermediate</option>
-                            <option value="advanced" {{ Auth::user()->fitness_level == 'advanced' ? 'selected' : '' }}>Advanced</option>
+                            <option value="beginner" {{ old('fitness_level', Auth::user()->fitness_level) == 'beginner' ? 'selected' : '' }}>Beginner</option>
+                            <option value="intermediate" {{ old('fitness_level', Auth::user()->fitness_level) == 'intermediate' ? 'selected' : '' }}>Intermediate</option>
+                            <option value="advanced" {{ old('fitness_level', Auth::user()->fitness_level) == 'advanced' ? 'selected' : '' }}>Advanced</option>
                         </select>
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Activity Level</label>
                         <select name="activity_level" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                             <option value="">Select Activity Level</option>
-                            <option value="sedentary" {{ Auth::user()->activity_level == 'sedentary' ? 'selected' : '' }}>Sedentary</option>
-                            <option value="lightly_active" {{ Auth::user()->activity_level == 'lightly_active' ? 'selected' : '' }}>Lightly Active</option>
-                            <option value="moderately_active" {{ Auth::user()->activity_level == 'moderately_active' ? 'selected' : '' }}>Moderately Active</option>
-                            <option value="very_active" {{ Auth::user()->activity_level == 'very_active' ? 'selected' : '' }}>Very Active</option>
-                            <option value="extremely_active" {{ Auth::user()->activity_level == 'extremely_active' ? 'selected' : '' }}>Extremely Active</option>
+                            <option value="sedentary" {{ old('activity_level', Auth::user()->activity_level) == 'sedentary' ? 'selected' : '' }}>Sedentary</option>
+                            <option value="lightly_active" {{ old('activity_level', Auth::user()->activity_level) == 'lightly_active' ? 'selected' : '' }}>Lightly Active</option>
+                            <option value="moderately_active" {{ old('activity_level', Auth::user()->activity_level) == 'moderately_active' ? 'selected' : '' }}>Moderately Active</option>
+                            <option value="very_active" {{ old('activity_level', Auth::user()->activity_level) == 'very_active' ? 'selected' : '' }}>Very Active</option>
+                            <option value="extremely_active" {{ old('activity_level', Auth::user()->activity_level) == 'extremely_active' ? 'selected' : '' }}>Extremely Active</option>
                         </select>
                     </div>
                 </div>
@@ -121,6 +130,50 @@
                     </button>
                     <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
                         Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Body Measurements -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-xl font-semibold text-gray-900">Body Measurements</h2>
+                <button type="button" onclick="toggleEdit('body-measurements')"
+                        class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                    Edit
+                </button>
+            </div>
+
+            <form id="body-measurements-form" action="{{ route('profile.update') }}" method="POST" class="space-y-6">
+                @csrf
+                @method('PATCH')
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Waist (cm)</label>
+                        <input type="number" name="waist_cm" value="{{ old('waist_cm', $profile->waist_cm) }}" step="0.1" min="40" max="200"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Chest (cm)</label>
+                        <input type="number" name="chest_cm" value="{{ old('chest_cm', $profile->chest_cm) }}" step="0.1" min="50" max="200"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Arms (cm)</label>
+                        <input type="number" name="arms_cm" value="{{ old('arms_cm', $profile->arms_cm) }}" step="0.1" min="15" max="60"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </div>
+                </div>
+
+                <div class="flex justify-end space-x-3">
+                    <button type="button" onclick="cancelEdit('body-measurements')"
+                            class="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50">
+                        Cancel
+                    </button>
+                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                        Save Measurements
                     </button>
                 </div>
             </form>
@@ -145,24 +198,24 @@
                         <label class="block text-sm font-medium text-gray-700 mb-2">Experience Level</label>
                         <select name="experience_level" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                             <option value="">Select Level</option>
-                            <option value="beginner" {{ $profile->experience_level == 'beginner' ? 'selected' : '' }}>Beginner</option>
-                            <option value="intermediate" {{ $profile->experience_level == 'intermediate' ? 'selected' : '' }}>Intermediate</option>
-                            <option value="advanced" {{ $profile->experience_level == 'advanced' ? 'selected' : '' }}>Advanced</option>
+                            <option value="beginner" {{ old('experience_level', $profile->experience_level) == 'beginner' ? 'selected' : '' }}>Beginner</option>
+                            <option value="intermediate" {{ old('experience_level', $profile->experience_level) == 'intermediate' ? 'selected' : '' }}>Intermediate</option>
+                            <option value="advanced" {{ old('experience_level', $profile->experience_level) == 'advanced' ? 'selected' : '' }}>Advanced</option>
                         </select>
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Available Days per Week</label>
-                        <input type="number" name="available_days_per_week" value="{{ $profile->available_days_per_week }}" min="1" max="7"
+                        <input type="number" name="available_days_per_week" value="{{ old('available_days_per_week', $profile->available_days_per_week) }}" min="1" max="7"
                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Preferred Workout Duration (minutes)</label>
-                        <input type="number" name="workout_duration_preference" value="{{ $profile->workout_duration_preference }}" min="15" max="180"
+                        <input type="number" name="workout_duration_preference" value="{{ old('workout_duration_preference', $profile->workout_duration_preference) }}" min="15" max="180"
                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Preferred Workout Time</label>
-                        <input type="time" name="preferred_workout_time" value="{{ $profile->preferred_workout_time ? $profile->preferred_workout_time->format('H:i') : '' }}"
+                        <input type="time" name="preferred_workout_time" value="{{ old('preferred_workout_time', $profile->preferred_workout_time ? $profile->preferred_workout_time->format('H:i') : '') }}"
                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                     </div>
                 </div>
@@ -227,13 +280,13 @@
                         <label class="block text-sm font-medium text-gray-700 mb-2">Medical Conditions</label>
                         <textarea name="medical_conditions[]" rows="3"
                                   placeholder="List any medical conditions (one per line)"
-                                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">{{ $profile->medical_conditions ? implode("\n", $profile->medical_conditions) : '' }}</textarea>
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">{{ old('medical_conditions', $profile->medical_conditions ? implode("\n", $profile->medical_conditions) : '') }}</textarea>
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Injuries</label>
                         <textarea name="injuries[]" rows="3"
                                   placeholder="List any injuries (one per line)"
-                                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">{{ $profile->injuries ? implode("\n", $profile->injuries) : '' }}</textarea>
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">{{ old('injuries', $profile->injuries ? implode("\n", $profile->injuries) : '') }}</textarea>
                     </div>
                 </div>
 
@@ -269,7 +322,7 @@
                 <div class="grid grid-cols-1 gap-3">
                     @php
                         $availableGoals = ['Weight Loss', 'Muscle Gain', 'Strength Training', 'Endurance', 'Flexibility', 'General Fitness', 'Sports Performance', 'Rehabilitation'];
-                        $currentGoals = $profile->goals ?? [];
+                        $currentGoals = old('goals', $profile->goals ?? []);
                     @endphp
 
                     @foreach($availableGoals as $goal)
@@ -333,10 +386,18 @@ function cancelEdit(section) {
 
 // Initialize forms as hidden
 document.addEventListener('DOMContentLoaded', function() {
-    const forms = ['basic-info-form', 'fitness-prefs-form', 'medical-info-form', 'goals-form'];
+    const forms = ['basic-info-form', 'body-measurements-form', 'fitness-prefs-form', 'medical-info-form', 'goals-form'];
     forms.forEach(formId => {
         const form = document.getElementById(formId);
-        if (form) form.style.display = 'none';
+        if (form) {
+            // Show form if there are validation errors
+            const hasErrors = @json(session('errors') && session('errors')->hasAny(array_keys(request()->all())));
+            if (hasErrors) {
+                form.style.display = 'block';
+            } else {
+                form.style.display = 'none';
+            }
+        }
     });
 });
 </script>
