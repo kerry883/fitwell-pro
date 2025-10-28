@@ -207,26 +207,59 @@
 
                     <!-- Action Buttons -->
                     <div class="d-flex justify-content-between mt-4">
-                        @if($clientProfile->status === 'active')
-                            <form method="POST" action="{{ route('trainer.clients.deactivate', $client->id) }}">
-                                @csrf
-                                @method('PATCH')
-                                <button type="submit" class="btn btn-danger px-4" onclick="return confirm('Are you sure you want to deactivate this client?')">
-                                    <i class="bi bi-x-circle me-2"></i>Deactivate Client
-                                </button>
-                            </form>
+                        @if($assignment->status->value !== 'pending')
+                            <!-- Assignment already processed -->
+                            <div class="alert alert-warning w-100">
+                                <i class="bi bi-info-circle me-2"></i>
+                                <strong>Assignment Status:</strong> {{ ucfirst(str_replace('_', ' ', $assignment->status->value)) }}
+                                @if($assignment->status->value === 'active')
+                                    - This client is already activated for this program.
+                                @elseif($assignment->status->value === 'pending_payment')
+                                    @if(!$assignment->program->is_free)
+                                        - Waiting for client to complete payment of ${{ number_format($assignment->program->price, 2) }}.
+                                    @else
+                                        - Processing activation (this is a free program).
+                                    @endif
+                                @elseif($assignment->status->value === 'cancelled')
+                                    - This enrollment has been cancelled.
+                                @elseif($assignment->status->value === 'rejected')
+                                    - This enrollment was rejected.
+                                @endif
+                            </div>
                         @else
-                            <form method="POST" action="{{ route('trainer.clients.process-activation', $client->id) }}">
+                            <!-- Pending - show activation form -->
+                            <form method="POST" action="{{ route('trainer.clients.process-activation', $client->id) }}" class="w-100">
                                 @csrf
-                                <button type="submit" class="btn trainer-btn-primary text-white px-4">
-                                    <i class="bi bi-check-circle me-2"></i>Accept & Activate Client
-                                </button>
+                                <input type="hidden" name="assignment_id" value="{{ $assignment->id }}">
+                                
+                                <!-- Show payment info if paid program -->
+                                @if(!$assignment->program->is_free)
+                                    <div class="alert alert-info mb-3">
+                                        <i class="bi bi-credit-card me-2"></i>
+                                        <strong>Paid Program:</strong> Client will be asked to pay <strong>${{ number_format($assignment->program->price, 2) }}</strong> within {{ $assignment->program->payment_deadline_hours ?? 48 }} hours after approval.
+                                    </div>
+                                @else
+                                    <div class="alert alert-success mb-3">
+                                        <i class="bi bi-check-circle me-2"></i>
+                                        <strong>Free Program:</strong> Client will be activated immediately.
+                                    </div>
+                                @endif
+                                
+                                <div class="mb-3">
+                                    <label for="approval_notes" class="form-label">Approval Notes (Optional)</label>
+                                    <textarea name="approval_notes" id="approval_notes" class="form-control" rows="3" placeholder="Add any notes about this activation..."></textarea>
+                                </div>
+                                
+                                <div class="d-flex justify-content-between">
+                                    <button type="submit" class="btn trainer-btn-primary text-white px-4">
+                                        <i class="bi bi-check-circle me-2"></i>Accept & Activate Client
+                                    </button>
+                                    <a href="{{ route('trainer.assignments.index') }}" class="btn btn-outline-secondary">
+                                        <i class="bi bi-arrow-left me-2"></i>Back to Assignments
+                                    </a>
+                                </div>
                             </form>
                         @endif
-                        <a href="{{ route('trainer.clients.index') }}" class="btn btn-outline-secondary">
-                            <i class="bi bi-x-circle me-2"></i>Back to Clients
-                        </a>
-                    </div>
                 </div>
             </div>
         </div>

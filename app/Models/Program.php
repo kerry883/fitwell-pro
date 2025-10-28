@@ -35,6 +35,11 @@ class Program extends Model
         'max_clients',
         'current_clients',
         'price',
+        'is_free',
+        'requires_approval',
+        'auto_approve_criteria',
+        'payment_deadline_hours',
+        'refund_policy_days',
         'notes',
     ];
 
@@ -48,6 +53,9 @@ class Program extends Model
         'includes_meal_prep' => 'boolean',
         'includes_shopping_list' => 'boolean',
         'price' => 'decimal:2',
+        'is_free' => 'boolean',
+        'requires_approval' => 'boolean',
+        'auto_approve_criteria' => 'array',
     ];
 
     /**
@@ -78,6 +86,11 @@ class Program extends Model
         return $this->hasOne(NutritionPlan::class);
     }
 
+    public function payments(): HasMany
+    {
+        return $this->hasMany(Payment::class);
+    }
+
     /**
      * Helper methods
      */
@@ -104,6 +117,16 @@ class Program extends Model
     public function canEnrollClient(): bool
     {
         return !$this->isFull() && $this->status === 'published';
+    }
+
+    public function isFree(): bool
+    {
+        return $this->is_free === true;
+    }
+
+    public function requiresApproval(): bool
+    {
+        return $this->requires_approval !== false;
     }
 
     /**

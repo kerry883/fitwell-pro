@@ -18,17 +18,17 @@
                 </div>
                 <div class="mt-2 flex items-center text-sm">
                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                        @if($assignment->status === 'active') bg-green-100 text-green-800
-                        @elseif($assignment->status === 'pending') bg-yellow-100 text-yellow-800
-                        @elseif($assignment->status === 'completed') bg-blue-100 text-blue-800
+                        @if($assignment->status->value === 'active') bg-green-100 text-green-800
+                        @elseif($assignment->status->value === 'pending') bg-yellow-100 text-yellow-800
+                        @elseif($assignment->status->value === 'completed') bg-blue-100 text-blue-800
                         @else bg-red-100 text-red-800 @endif">
-                        {{ ucfirst($assignment->status) }}
+                        {{ ucfirst(str_replace('_', ' ', $assignment->status->value)) }}
                     </span>
                 </div>
             </div>
         </div>
         <div class="mt-4 flex md:ml-4 md:mt-0">
-            @if($assignment->status === 'active')
+            @if($assignment->status->value === 'active')
                 <button type="button"
                         onclick="openProgressModal()"
                         class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500">
@@ -83,7 +83,7 @@
                                             @if($week < $currentWeek) bg-emerald-500
                                             @elseif($week === $currentWeek) bg-blue-500
                                             @else bg-gray-300 @endif"
-                                             style="width: @if($week < $currentWeek) 100% @elseif($week === $currentWeek) {{ min(100, ($assignment->current_session / $assignment->program->sessions_per_week) * 100) }}% @else 0% @endif">
+                                             style="width: @if($week < $currentWeek) 100% @elseif($week === $currentWeek) {{ $assignment->program->sessions_per_week > 0 ? min(100, ($assignment->current_session / $assignment->program->sessions_per_week) * 100) : 0 }}% @else 0% @endif">
                                         </div>
                                     </div>
                                 </div>
@@ -99,7 +99,7 @@
             </div>
 
             <!-- Upcoming Workouts -->
-            @if($assignment->status === 'active' && $upcomingWorkouts->count() > 0)
+            @if($assignment->status->value === 'active' && $upcomingWorkouts->count() > 0)
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
                     <h3 class="text-lg font-semibold text-gray-900 mb-4">Upcoming Workouts</h3>
                     <div class="space-y-4">

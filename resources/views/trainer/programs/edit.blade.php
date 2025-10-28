@@ -282,27 +282,79 @@
                                 </div>
                                 @endif
                             </div>
+                        </div>
+                    </div>
 
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="price" class="form-label">Price ($)</label>
-                                    <input type="number" class="form-control" id="price" name="price" 
-                                        value="{{ $program->price }}" min="0" step="0.01" placeholder="0.00">
+                    <!-- Payment & Enrollment Settings -->
+                    <div class="card shadow-sm mb-4">
+                        <div class="card-header bg-info text-white">
+                            <h5 class="mb-0"><i class="fas fa-credit-card me-2"></i>Payment & Enrollment</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" name="is_free" value="1" id="is_free" 
+                                            x-model="formData.is_free" {{ $program->is_free ? 'checked' : '' }}>
+                                        <label class="form-check-label" for="is_free">
+                                            <strong>Free Program</strong>
+                                            <small class="text-muted d-block">No payment required, clients activate immediately upon approval</small>
+                                        </label>
+                                    </div>
                                 </div>
+                                <div class="col-md-6" x-show="!formData.is_free">
+                                    <label for="price" class="form-label">Price ($) <span class="text-danger">*</span></label>
+                                    <input type="number" class="form-control" id="price" name="price" 
+                                        value="{{ $program->price ?? 0 }}" min="0" step="0.01" :required="!formData.is_free">
+                                    <small class="text-muted">Leave as 0 for free programs</small>
+                                </div>
+                                <div class="col-md-6" x-show="!formData.is_free">
+                                    <label for="payment_deadline_hours" class="form-label">Payment Deadline (Hours)</label>
+                                    <input type="number" class="form-control" id="payment_deadline_hours" name="payment_deadline_hours" 
+                                        value="{{ $program->payment_deadline_hours ?? 48 }}" min="1" max="168">
+                                    <small class="text-muted">Time clients have to complete payment (default: 48h)</small>
+                                </div>
+                                <div class="col-md-6" x-show="!formData.is_free">
+                                    <label for="refund_policy_days" class="form-label">Refund Policy (Days)</label>
+                                    <input type="number" class="form-control" id="refund_policy_days" name="refund_policy_days" 
+                                        value="{{ $program->refund_policy_days ?? 7 }}" min="0" max="30">
+                                    <small class="text-muted">Money-back guarantee period (default: 7 days)</small>
+                                </div>
+                                <div class="col-12">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" name="requires_approval" value="1" id="requires_approval"
+                                            {{ $program->requires_approval ? 'checked' : '' }}>
+                                        <label class="form-check-label" for="requires_approval">
+                                            <strong>Requires Trainer Approval</strong>
+                                            <small class="text-muted d-block">Review client suitability before activation/payment</small>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- General Settings -->
+                    <div class="card shadow-sm mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="fas fa-cog me-2"></i>General Settings</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
                                 <div class="col-md-6 mb-3">
                                     <label for="max_clients" class="form-label">Max Clients</label>
                                     <input type="number" class="form-control" id="max_clients" name="max_clients" 
                                         value="{{ $program->max_clients }}" min="1" placeholder="Unlimited">
+                                    <small class="text-muted">Maximum concurrent enrollments</small>
                                 </div>
-                            </div>
-                            
-                            <div class="mb-3">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="is_public" name="is_public"
-                                        value="1" {{ $program->is_public ? 'checked' : '' }}>
-                                    <label class="form-check-label" for="is_public">
-                                        Make Program Public
-                                    </label>
+                                <div class="col-md-6 mb-3">
+                                    <div class="form-check form-switch mt-4">
+                                        <input class="form-check-input" type="checkbox" id="is_public" name="is_public"
+                                            value="1" {{ $program->is_public ? 'checked' : '' }}>
+                                        <label class="form-check-label" for="is_public">
+                                            Make Program Public
+                                        </label>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -399,7 +451,8 @@
                     name: '{{ $program->name }}',
                     description: '{{ $program->description }}',
                     duration_weeks: {{ $program->duration_weeks }},
-                    difficulty_level: '{{ $program->difficulty_level }}'
+                    difficulty_level: '{{ $program->difficulty_level }}',
+                    is_free: {{ $program->is_free ? 'true' : 'false' }}
                 }
             }
         }

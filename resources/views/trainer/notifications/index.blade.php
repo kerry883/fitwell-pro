@@ -193,8 +193,8 @@ document.addEventListener('DOMContentLoaded', function() {
                                 View Details
                             </button>
                             ${notification.type === 'enrollment_request' ?
-                                `<a href="/trainer/clients/${notification.data.user_id}/activate" class="btn btn-sm trainer-btn-primary text-white me-2">
-                                    Accept & Activate
+                                `<a href="/trainer/clients/${notification.data.user_id}/activate?assignment=${notification.data.assignment_id}" class="btn btn-sm trainer-btn-primary text-white me-2">
+                                    <i class="bi bi-person-check me-1"></i>Review & Activate
                                 </a>` : ''}
                             ${!notification.is_read ?
                                 `<button class="btn btn-sm btn-outline-success mark-read-btn me-2" data-notification-id="${notification.id}">

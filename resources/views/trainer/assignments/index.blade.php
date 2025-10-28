@@ -1,29 +1,18 @@
-@php
-    $title = 'Pending Assignments';
-@endphp
+@extends('layouts.trainer')
 
-@extends('layouts.app')
+@section('title', 'Pending Assignments')
+@section('page-title', 'Pending Assignments')
+@section('page-subtitle', 'Review and approve client enrollment requests for your programs')
 
 @section('content')
-<div class="space-y-8">
-    <!-- Header -->
-    <div class="md:flex md:items-center md:justify-between">
-        <div class="min-w-0 flex-1">
-            <h2 class="text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:text-3xl sm:tracking-tight">
-                Pending Assignments
-            </h2>
-            <p class="mt-1 text-sm text-gray-500">
-                Review and approve client enrollment requests for your programs
-            </p>
-        </div>
-    </div>
-
+<div class="container-fluid">
     <!-- Assignments List -->
-    <div class="bg-white shadow overflow-hidden sm:rounded-md">
-        <ul role="list" class="divide-y divide-gray-200">
-            @forelse($pendingAssignments as $assignment)
-                <li class="px-6 py-4">
-                    <div class="flex items-center justify-between">
+    <div class="trainer-card">
+        <div class="card-body p-0">
+            <ul role="list" class="list-unstyled mb-0">
+                @forelse($pendingAssignments as $assignment)
+                    <li class="border-bottom p-4 transition-colors" data-assignment-id="{{ $assignment->id }}" style="transition-duration: 300ms;">
+                        <div class="d-flex align-items-center justify-content-between">
                         <div class="flex items-center space-x-4">
                             <!-- Client Avatar -->
                             <div class="flex-shrink-0">
@@ -34,130 +23,108 @@
                                 </div>
                             </div>
 
+                            <div class="flex-shrink-0">
+                                <div class="rounded-circle bg-success d-flex align-items-center justify-content-center text-white fw-semibold" style="width: 48px; height: 48px;">
+                                    <span>{{ substr($assignment->client->user->full_name ?? 'C', 0, 1) }}</span>
+                                </div>
+                            </div>
+
                             <!-- Assignment Details -->
-                            <div class="flex-1 min-w-0">
-                                <div class="flex items-center space-x-2">
-                                    <p class="text-sm font-medium text-gray-900">
+                            <div class="flex-grow-1 ms-3">
+                                <div class="d-flex align-items-center mb-1">
+                                    <p class="mb-0 fw-semibold text-dark me-2">
                                         {{ $assignment->client->user->full_name ?? 'Unknown Client' }}
                                     </p>
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                    <span class="badge bg-warning text-dark">
                                         Pending Approval
                                     </span>
                                 </div>
-                                <p class="text-sm text-gray-500">
-                                    Requested to enroll in: <span class="font-medium">{{ $assignment->program->name }}</span>
+                                <p class="mb-1 text-muted small">
+                                    Requested to enroll in: <span class="fw-medium">{{ $assignment->program->name }}</span>
                                 </p>
-                                <p class="text-xs text-gray-400">
+                                <p class="mb-0 text-muted" style="font-size: 0.75rem;">
                                     Requested on {{ $assignment->assigned_date->format('M j, Y \a\t g:i A') }}
                                 </p>
                             </div>
                         </div>
 
                         <!-- Actions -->
-                        <div class="flex items-center space-x-3">
-                            <!-- Approve Button -->
-                            <form method="POST" action="{{ route('trainer.assignments.approve', $assignment->id) }}" class="inline">
-                                @csrf
-                                @method('PATCH')
-                                <button type="submit"
-                                        class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-colors duration-200">
-                                    <svg class="-ml-0.5 mr-1.5 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                                    </svg>
-                                    Approve
-                                </button>
-                            </form>
+                        <div class="d-flex align-items-center gap-3">
+                            <!-- Program Price Badge -->
+                            @if($assignment->program->is_free)
+                                <span class="badge bg-success-subtle text-success d-inline-flex align-items-center">
+                                    <i class="bi bi-check-circle me-1"></i>
+                                    Free Program
+                                </span>
+                            @else
+                                <span class="badge bg-info-subtle text-info d-inline-flex align-items-center">
+                                    <i class="bi bi-currency-dollar me-1"></i>
+                                    ${{ number_format($assignment->program->price, 2) }}
+                                </span>
+                            @endif
 
-                            <!-- Reject Button -->
-                            <button type="button"
-                                    onclick="openRejectModal({{ $assignment->id }}, '{{ $assignment->client->user->full_name ?? 'Unknown Client' }}', '{{ $assignment->program->name }}')"
-                                    class="inline-flex items-center px-3 py-2 border border-gray-300 text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-colors duration-200">
-                                <svg class="-ml-0.5 mr-1.5 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                                Reject
-                            </button>
+                            <!-- View Details Button -->
+                            <a href="{{ route('trainer.clients.activate', ['id' => $assignment->client->user->id, 'assignment' => $assignment->id]) }}"
+                               class="btn btn-sm trainer-btn-primary text-white">
+                                <i class="bi bi-eye me-1"></i>
+                                Review & Activate
+                            </a>
                         </div>
                     </div>
                 </li>
             @empty
-                <li class="px-6 py-12">
-                    <div class="text-center">
-                        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
-                        <h3 class="mt-2 text-sm font-medium text-gray-900">No pending assignments</h3>
-                        <p class="mt-1 text-sm text-gray-500">All enrollment requests have been processed.</p>
+                <li class="p-5 text-center">
+                    <div class="py-4">
+                        <i class="bi bi-file-earmark-text text-muted" style="font-size: 3rem;"></i>
+                        <h5 class="mt-3 mb-2 fw-semibold">No pending assignments</h5>
+                        <p class="text-muted mb-0">All enrollment requests have been processed.</p>
                     </div>
                 </li>
             @endforelse
         </ul>
     </div>
 </div>
-
-<!-- Reject Modal -->
-<div id="rejectModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+</div><!-- Approve Modal -->
+<div id="approveModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
     <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
         <div class="mt-3">
             <div class="flex items-center justify-between mb-4">
-                <h3 class="text-lg font-medium text-gray-900">Reject Enrollment Request</h3>
-                <button onclick="closeRejectModal()" class="text-gray-400 hover:text-gray-600">
+                <h3 class="text-lg font-medium text-gray-900">Approve Enrollment Request</h3>
+                <button onclick="closeApproveModal()" class="text-gray-400 hover:text-gray-600">
                     <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                     </svg>
                 </button>
             </div>
 
-            <div class="mb-4">
-                <p class="text-sm text-gray-600">
-                    Are you sure you want to reject <span id="clientName" class="font-medium"></span>'s enrollment request for <span id="programName" class="font-medium"></span>?
-                </p>
-            </div>
-
-            <form id="rejectForm" method="POST" action="">
-                @csrf
-                @method('PATCH')
-                <div class="mb-4">
-                    <label for="reason" class="block text-sm font-medium text-gray-700 mb-2">
-                        Reason for rejection (optional)
-                    </label>
-                    <textarea id="reason" name="reason" rows="3"
-                              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-emerald-500 focus:border-emerald-500"
-                              placeholder="Provide a reason for the rejection..."></textarea>
-                </div>
-
-                <div class="flex justify-end space-x-3">
-                    <button type="button" onclick="closeRejectModal()"
-                            class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500">
-                        Cancel
-                    </button>
-                    <button type="submit"
-                            class="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
-                        Reject Request
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
 
 <script>
-function openRejectModal(assignmentId, clientName, programName) {
-    document.getElementById('clientName').textContent = clientName;
-    document.getElementById('programName').textContent = programName;
-    document.getElementById('rejectForm').action = `/trainer/assignments/${assignmentId}/reject`;
-    document.getElementById('rejectModal').classList.remove('hidden');
-}
-
-function closeRejectModal() {
-    document.getElementById('rejectModal').classList.add('hidden');
-    document.getElementById('reason').value = '';
-}
-
-// Close modal when clicking outside
-document.getElementById('rejectModal').addEventListener('click', function(e) {
-    if (e.target === this) {
-        closeRejectModal();
+// Highlight assignment from notification
+document.addEventListener('DOMContentLoaded', function() {
+    // Get highlight parameter from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const highlightId = urlParams.get('highlight');
+    
+    if (highlightId) {
+        // Find the assignment row
+        const assignments = document.querySelectorAll('li[data-assignment-id]');
+        assignments.forEach(li => {
+            if (li.dataset.assignmentId === highlightId) {
+                // Add highlight effect (Bootstrap classes)
+                li.classList.add('bg-warning', 'bg-opacity-10', 'border', 'border-warning');
+                li.style.transition = 'all 0.3s ease';
+                
+                // Scroll to the assignment
+                setTimeout(() => {
+                    li.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 100);
+                
+                // Remove highlight after 5 seconds
+                setTimeout(() => {
+                    li.classList.remove('bg-warning', 'bg-opacity-10', 'border', 'border-warning');
+                }, 5000);
+            }
+        });
     }
 });
 </script>

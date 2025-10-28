@@ -10,6 +10,12 @@ return Application::configure(basePath: dirname(__DIR__))
         then: function () {
             Route::middleware('web')
                 ->group(base_path('routes/admin.php'));
+            
+            Route::middleware('web')
+                ->group(base_path('routes/client.php'));
+            
+            Route::middleware('web')
+                ->group(base_path('routes/trainer.php'));
         },
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
@@ -21,6 +27,11 @@ return Application::configure(basePath: dirname(__DIR__))
             'admin.session' => \App\Http\Middleware\AdminSessionTimeout::class,
             'nocache' => \App\Http\Middleware\NoCacheHeaders::class,
             'role' => \App\Http\Middleware\RoleMiddleware::class,
+        ]);
+
+        // Exclude Stripe webhook from CSRF protection
+        $middleware->validateCsrfTokens(except: [
+            'stripe/webhook',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

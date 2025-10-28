@@ -93,8 +93,9 @@
                                         </select>
                                     </div>
                                     <div class="col-md-4">
-                                        <label for="price" class="form-label">Price ($)</label>
-                                        <input type="number" class="form-control" id="price" name="price" min="0" step="0.01">
+                                        <label for="max_clients" class="form-label">Max Clients</label>
+                                        <input type="number" class="form-control" id="max_clients_preview" name="max_clients_preview" min="1" disabled>
+                                        <small class="text-muted">Set in settings below</small>
                                     </div>
                                 </div>
                             </div>
@@ -197,19 +198,74 @@
                             </div>
                         </div>
 
-                        <!-- Settings -->
+                        <!-- Payment & Enrollment Settings -->
                         <div class="card trainer-card mb-4">
-                            <div class="card-header"><h5 class="mb-0"><i class="bi bi-gear me-2"></i>Settings</h5></div>
+                            <div class="card-header bg-info text-white"><h5 class="mb-0"><i class="bi bi-credit-card me-2"></i>Payment & Enrollment</h5></div>
                             <div class="card-body">
                                 <div class="row g-3">
-                                    <div class="col-md-6">
+                                    <div class="col-12">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" name="is_free" value="1" id="is_free" x-model="formData.is_free">
+                                            <label class="form-check-label" for="is_free">
+                                                <strong>Free Program</strong>
+                                                <small class="text-muted d-block">No payment required, clients activate immediately upon approval</small>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6" x-show="!formData.is_free">
+                                        <label for="price" class="form-label">Price ($) <span class="text-danger">*</span></label>
+                                        <input type="number" class="form-control" id="price" name="price" min="0" step="0.01" :required="!formData.is_free" value="0">
+                                        <small class="text-muted">Leave as 0 for free programs</small>
+                                    </div>
+                                    <div class="col-md-6" x-show="!formData.is_free">
+                                        <label for="payment_deadline_hours" class="form-label">Payment Deadline (Hours)</label>
+                                        <input type="number" class="form-control" id="payment_deadline_hours" name="payment_deadline_hours" min="1" max="168" value="48">
+                                        <small class="text-muted">Time clients have to complete payment (default: 48h)</small>
+                                    </div>
+                                    <div class="col-md-6" x-show="!formData.is_free">
+                                        <label for="refund_policy_days" class="form-label">Refund Policy (Days)</label>
+                                        <input type="number" class="form-control" id="refund_policy_days" name="refund_policy_days" min="0" max="30" value="7">
+                                        <small class="text-muted">Money-back guarantee period (default: 7 days)</small>
+                                    </div>
+                                    <div class="col-12">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" name="requires_approval" value="1" id="requires_approval" checked>
+                                            <label class="form-check-label" for="requires_approval">
+                                                <strong>Requires Trainer Approval</strong>
+                                                <small class="text-muted d-block">Review client suitability before activation/payment</small>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- General Settings -->
+                        <div class="card trainer-card mb-4">
+                            <div class="card-header"><h5 class="mb-0"><i class="bi bi-gear me-2"></i>General Settings</h5></div>
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <div class="col-md-4">
+                                        <label for="status" class="form-label">Status <span class="text-danger">*</span></label>
+                                        <select class="form-select" id="status" name="status" required>
+                                            <option value="draft">Draft (Hidden from clients)</option>
+                                            <option value="published" selected>Published (Visible to clients)</option>
+                                            <option value="archived">Archived (Inactive)</option>
+                                        </select>
+                                        <small class="text-muted">Only published programs are visible to clients</small>
+                                    </div>
+                                    <div class="col-md-4">
                                         <label for="max_clients" class="form-label">Max Clients</label>
                                         <input type="number" class="form-control" id="max_clients" name="max_clients" min="1">
+                                        <small class="text-muted">Maximum concurrent enrollments</small>
                                     </div>
-                                    <div class="col-md-6">
+                                    <div class="col-md-4">
                                         <div class="form-check form-switch mt-4">
-                                            <input class="form-check-input" type="checkbox" name="is_public" value="1" id="is_public">
-                                            <label class="form-check-label" for="is_public">Make Public</label>
+                                            <input class="form-check-input" type="checkbox" name="is_public" value="1" id="is_public" checked>
+                                            <label class="form-check-label" for="is_public">
+                                                <strong>Make Public</strong>
+                                                <small class="text-muted d-block">Allow clients to discover and enroll</small>
+                                            </label>
                                         </div>
                                     </div>
                                 </div>
@@ -254,7 +310,10 @@
 function programCreator() {
     return {
         category: null,
-        formData: { name: '' },
+        formData: { 
+            name: '',
+            is_free: false
+        },
         init() {}
     }
 }

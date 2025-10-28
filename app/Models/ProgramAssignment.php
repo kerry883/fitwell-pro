@@ -6,6 +6,8 @@ use App\Enums\ProgramAssignmentStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class ProgramAssignment extends Model
 {
@@ -24,6 +26,11 @@ class ProgramAssignment extends Model
         'customizations',
         'notes',
         'completed_at',
+        'approved_at',
+        'approved_by',
+        'approval_notes',
+        'payment_deadline',
+        'payment_reminder_sent_at',
     ];
 
     protected $casts = [
@@ -34,6 +41,9 @@ class ProgramAssignment extends Model
         'customizations' => 'array',
         'completed_at' => 'datetime',
         'status' => ProgramAssignmentStatus::class,
+        'approved_at' => 'datetime',
+        'payment_deadline' => 'datetime',
+        'payment_reminder_sent_at' => 'datetime',
     ];
 
     /**
@@ -52,6 +62,21 @@ class ProgramAssignment extends Model
     public function user()
     {
         return $this->hasOneThrough(User::class, ClientProfile::class, 'id', 'id', 'client_id', 'user_id');
+    }
+
+    public function approver(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'approved_by');
+    }
+
+    public function payment(): HasOne
+    {
+        return $this->hasOne(Payment::class);
+    }
+
+    public function payments()
+    {
+        return $this->hasMany(Payment::class, 'program_assignment_id');
     }
 
     public function getFullNameAttribute()
@@ -80,6 +105,37 @@ class ProgramAssignment extends Model
     public function isRejected(): bool
     {
         return $this->status === ProgramAssignmentStatus::REJECTED;
+    }
+
+    public function isWithdrawn(): bool
+    {
+        return $this->status === ProgramAssignmentStatus::WITHDRAWN;
+    }
+
+    public function isCancelled(): bool
+    {
+        return $this->status === ProgramAssignmentStatus::CANCELLED;
+    }
+
+    public function canBeDeleted(): bool
+    {
+        // Only withdrawn, rejected, or cancelled programs can be deleted
+        return $this->isWithdrawn() || $this->isRejected() || $this->isCancelled();
+    }
+
+    public function isPendingPayment(): bool
+    {
+        return $this->status === ProgramAssignmentStatus::PENDING_PAYMENT;
+    }
+
+    public function isApproved(): bool
+    {
+        return $this->approved_at !== null;
+    }
+
+    public function paymentDeadlineExpired(): bool
+    {
+        return $this->payment_deadline && now()->gt($this->payment_deadline);
     }
 
     public function markAsCompleted()

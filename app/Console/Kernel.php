@@ -5,6 +5,8 @@ namespace App\Console;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 use App\Console\Commands\PruneOldNotifications;
+use App\Console\Commands\SendPaymentReminders;
+use App\Console\Commands\CancelExpiredPayments;
 
 class Kernel extends ConsoleKernel
 {
@@ -15,6 +17,8 @@ class Kernel extends ConsoleKernel
      */
     protected $commands = [
         PruneOldNotifications::class,
+        SendPaymentReminders::class,
+        CancelExpiredPayments::class,
     ];
 
     /**
@@ -25,7 +29,14 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
+        // Prune old notifications daily
         $schedule->command('notifications:prune')->daily();
+        
+        // Send payment reminders every hour
+        $schedule->command('payments:send-reminders')->hourly();
+        
+        // Cancel expired payment assignments every hour
+        $schedule->command('payments:cancel-expired')->hourly();
     }
 
     /**

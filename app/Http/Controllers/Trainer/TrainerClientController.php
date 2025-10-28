@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\ClientProfile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use App\Models\User;
 use App\Models\Program;
 use App\Models\Notification;
@@ -344,19 +345,42 @@ class TrainerClientController extends Controller
     /**
      * Show client activation page with match percentage
      */
-    public function activate($id)
+    public function activate(Request $request, $id)
     {
         // Get the client details
         $client = User::findOrFail($id);
         $clientProfile = $client->clientProfile;
 
-        // Get the program the client enrolled in
-        $assignment = ProgramAssignment::where('client_id', $clientProfile->id)
-            ->where('status', 'pending')
-            ->with('program')
-            ->firstOrFail();
+        if (!$clientProfile) {
+            return redirect()->route('trainer.clients.index')
+                ->with('error', 'Client profile not found.');
+        }
+
+        // Get the specific assignment if provided, otherwise get any pending
+        $assignmentQuery = ProgramAssignment::where('client_id', $clientProfile->id)
+            ->with('program');
+
+        if ($request->has('assignment')) {
+            $assignmentQuery->where('id', $request->assignment);
+        } else {
+            // If no specific assignment, get any pending one
+            $assignmentQuery->where('status', 'pending');
+        }
+
+        $assignment = $assignmentQuery->first();
+
+        if (!$assignment) {
+            return redirect()->route('trainer.assignments.index')
+                ->with('error', 'No enrollment found for this client.');
+        }
 
         $program = $assignment->program;
+
+        // Verify the program belongs to this trainer
+        if ($program->trainer_id !== Auth::user()->trainerProfile->id) {
+            return redirect()->route('trainer.assignments.index')
+                ->with('error', 'Unauthorized access to this enrollment.');
+        }
 
         // Use the same ProgramMatchingService as clients see
         $matchingService = app(\App\Services\ProgramMatchingService::class);
@@ -378,98 +402,105 @@ class TrainerClientController extends Controller
     }
 
     /**
-     * Process client activation
+     * Process client activation (Updated for payment integration)
      */
     public function processActivation($id, Request $request)
     {
-        // Get the client and assignment
+        $request->validate([
+            'approval_notes' => 'nullable|string|max:1000',
+            'assignment_id' => 'required|exists:program_assignments,id',
+        ]);
+
+        // Get the client and specific assignment
         $client = User::findOrFail($id);
         $clientProfile = $client->clientProfile;
-        $assignment = ProgramAssignment::where('client_id', $clientProfile->id)
-            ->where('status', 'pending')
-            ->firstOrFail();
+        $assignment = ProgramAssignment::with('program')->findOrFail($request->assignment_id);
+        $program = $assignment->program;
 
-        // Update assignment status to active
-        $assignment->status = 'active';
-        $assignment->start_date = now();
-        $assignment->save();
-
-        // Update client profile
-        $clientProfile = $client->clientProfile ?? new ClientProfile();
-        $clientProfile->user_id = $client->id;
-        Log::info('Setting trainer_id in client profile during activation', [
-            'client_id' => $client->id,
-            'trainer_id' => Auth::id(),
-            'existing_trainer_id' => $clientProfile->trainer_id ?? null,
-            'existing_trainer_count' => $clientProfile->trainer_count ?? 0,
-        ]);
-        $clientProfile->trainer_id = Auth::id();
-        $clientProfile->status = 'active';
-        $clientProfile->joined_date = now();
-        $clientProfile->save();
-        // Update client profile
-        $clientProfile = $client->clientProfile ?? new ClientProfile();
-        $clientProfile->user_id = $client->id;
-        Log::info('Setting trainer_id in client profile during activation', [
-            'client_id' => $client->id,
-            'trainer_id' => Auth::id(),
-            'existing_trainer_id' => $clientProfile->trainer_id ?? null,
-            'existing_trainer_count' => $clientProfile->trainer_count ?? 0,
-        ]);
-        $clientProfile->trainer_id = Auth::id();
-        $clientProfile->status = 'active';
-        $clientProfile->joined_date = now();
-        $clientProfile->save();
-
-        // Update trainer's client count
-        $trainerProfile = Auth::user()->trainerProfile;
-        if ($trainerProfile) {
-            $trainerProfile->current_clients = ($trainerProfile->current_clients ?? 0) + 1;
-            $trainerProfile->save();
+        if (!$assignment->isPending()) {
+            return redirect()->route('trainer.assignments.index')
+                ->with('error', 'This assignment is not pending approval.');
         }
 
-        // Create notification for the client
-        Log::info('Creating notification for client activation', [
-            'client_id' => $client->id,
-            'trainer_id' => Auth::id(),
-            'assignment_id' => $assignment->id
-        ]);
+        DB::transaction(function () use ($assignment, $program, $request, $clientProfile) {
+            // Check if program is free
+            if ($program->isFree()) {
+                // Free program - activate immediately
+                $assignment->update([
+                    'status' => \App\Enums\ProgramAssignmentStatus::ACTIVE,
+                    'start_date' => now(),
+                    'end_date' => now()->addWeeks($program->duration_weeks),
+                    'approved_at' => now(),
+                    'approved_by' => Auth::id(),
+                    'approval_notes' => $request->approval_notes,
+                ]);
 
-        $notification = Notification::create([
-            'user_id' => $client->id,
-            'title' => 'Enrollment Approved',
-            'message' => "Your enrollment in the {$assignment->program->name} program has been approved. You can now start your fitness journey!",
-            'type' => 'program_assignment_approved',
-            'data' => [
-                'program_id' => $assignment->program_id,
-                'assignment_id' => $assignment->id,
-                'client_id' => $clientProfile->id,
-                'trainer_id' => Auth::id(),
-            ],
-        ]);
+                // Update program current clients count
+                $program->increment('current_clients');
 
-        Log::info('Notification created', [
-            'notification_id' => $notification->id,
-            'user_id' => $notification->user_id,
-            'type' => $notification->type
-        ]);
+                // Update client profile status
+                $clientProfile->status = 'active';
+                if (!$clientProfile->trainer_id) {
+                    $clientProfile->trainer_id = Auth::id();
+                }
+                if (!$clientProfile->joined_date) {
+                    $clientProfile->joined_date = now();
+                }
+                $clientProfile->save();
 
-        // Broadcast the notification to the client
-        Log::info('Broadcasting notification to client', [
-            'client_id' => $client->id,
-            'channel' => 'notifications.' . $client->id
-        ]);
+                // Create notification for client - immediate activation
+                $notification = \App\Models\Notification::create([
+                    'user_id' => $assignment->client->user->id,
+                    'type' => 'program_assignment_approved',
+                    'title' => 'Program Enrollment Approved',
+                    'message' => "Your enrollment for '{$program->name}' has been approved! You can start immediately.",
+                    'data' => [
+                        'program_id' => $program->id,
+                        'assignment_id' => $assignment->id,
+                        'client_id' => $assignment->client->id,
+                        'trainer_id' => $program->trainer_id,
+                    ],
+                ]);
+                
+                broadcast(new \App\Events\NotificationCreated($notification));
+            } else {
+                // Paid program - set to pending payment
+                $paymentDeadline = now()->addHours($program->payment_deadline_hours ?? 48);
 
-        try {
-            broadcast(new \App\Events\NotificationCreated($notification))->toOthers();
-            Log::info('Broadcast successful');
-        } catch (\Exception $e) {
-            Log::error('Broadcast failed', ['error' => $e->getMessage()]);
-        }
+                $assignment->update([
+                    'status' => \App\Enums\ProgramAssignmentStatus::PENDING_PAYMENT,
+                    'approved_at' => now(),
+                    'approved_by' => Auth::id(),
+                    'approval_notes' => $request->approval_notes,
+                    'payment_deadline' => $paymentDeadline,
+                ]);
 
-        // Redirect with success message
-        return redirect()->route('trainer.clients.index')
-            ->with('success', 'Client has been successfully activated and added to your client list.');
+                // Create notification for client - payment required
+                $notification = \App\Models\Notification::create([
+                    'user_id' => $assignment->client->user->id,
+                    'type' => 'enrollment_approved_pending_payment',
+                    'title' => 'Payment Required',
+                    'message' => "Your enrollment for '{$program->name}' has been approved! Please complete payment within " . 
+                               ($program->payment_deadline_hours ?? 48) . " hours to activate your program.",
+                    'data' => [
+                        'program_id' => $program->id,
+                        'assignment_id' => $assignment->id,
+                        'client_id' => $assignment->client->id,
+                        'trainer_id' => $program->trainer_id,
+                        'amount' => $program->price,
+                        'deadline' => $paymentDeadline->toISOString(),
+                        'payment_url' => route('client.payment.checkout', $assignment->id),
+                    ],
+                ]);
+                
+                broadcast(new \App\Events\NotificationCreated($notification));
+            }
+        });
+
+        return redirect()->route('trainer.assignments.index')
+            ->with('success', $program->isFree() 
+                ? 'Assignment approved and activated!' 
+                : 'Assignment approved! Client will be notified to complete payment.');
     }
 
     /**
