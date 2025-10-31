@@ -235,11 +235,17 @@ class OtpVerificationController extends Controller
             // Log the user in
             Auth::login($user);
 
-            $message = $user->user_type === 'trainer' 
-                ? 'Account verified successfully! Your trainer profile is pending approval.'
-                : 'Account verified successfully! Welcome to FitWell Pro.';
+            // Redirect based on user type
+            if ($user->user_type === 'trainer') {
+                return redirect()->route('dashboard')
+                    ->with('success', 'Account verified successfully! Your trainer profile is pending approval.');
+            } elseif ($user->user_type === 'client') {
+                // Redirect clients to onboarding
+                return redirect()->route('client.onboarding.start')
+                    ->with('success', 'Account verified successfully! Let\'s complete your profile to get started.');
+            }
 
-            return redirect()->route('dashboard')->with('success', $message);
+            return redirect()->route('dashboard')->with('success', 'Account verified successfully!');
 
         } catch (\Exception $e) {
             Log::error('Failed to verify OTP', [

@@ -31,14 +31,18 @@ class RegistrationRateLimiter
     {
         $key = 'registration:' . $request->ip();
         
-        if ($this->limiter->tooManyAttempts($key, 3)) {
+        // Allow more attempts in development environment
+        $maxAttempts = app()->environment('local') ? 100 : 3;
+        $decayMinutes = app()->environment('local') ? 10 : 60;
+        
+        if ($this->limiter->tooManyAttempts($key, $maxAttempts)) {
             return response()->json([
                 'message' => 'Too many registration attempts. Please try again later.',
                 'retry_after' => $this->limiter->availableIn($key)
             ], 429);
         }
 
-        $this->limiter->hit($key, 60 * 60); // 1 hour decay
+        $this->limiter->hit($key, $decayMinutes * 60); // Convert to seconds
 
         $response = $next($request);
 

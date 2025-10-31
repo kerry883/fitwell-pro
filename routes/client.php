@@ -10,6 +10,7 @@ use App\Http\Controllers\Client\WorkoutController;
 use App\Http\Controllers\Client\NutritionController;
 use App\Http\Controllers\Client\ProgressController;
 use App\Http\Controllers\Client\CalendarController;
+use App\Http\Controllers\Client\OnboardingController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -25,8 +26,18 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'role:client'])->prefix('client')->name('client.')->group(function () {
     
-    // Client Dashboard
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    // Onboarding Routes (accessible without onboarding completion)
+    Route::prefix('onboarding')->name('onboarding.')->group(function () {
+        Route::get('/start', [OnboardingController::class, 'start'])->name('start');
+        Route::get('/step/{step}', [OnboardingController::class, 'showStep'])->name('step');
+        Route::post('/step/{step}', [OnboardingController::class, 'saveStep'])->name('save');
+    });
+    
+    // Protected Routes (require onboarding completion)
+    Route::middleware(['ensure.onboarding.completed'])->group(function () {
+        
+        // Client Dashboard
+        Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     
     // Program Management
     Route::controller(ClientProgramController::class)->prefix('programs')->name('programs.')->group(function () {
@@ -94,4 +105,6 @@ Route::middleware(['auth', 'role:client'])->prefix('client')->name('client.')->g
         Route::get('/', 'index')->name('index');
         Route::put('/', 'update')->name('update');
     });
+    
+    }); // End of ensure.onboarding.completed middleware
 });

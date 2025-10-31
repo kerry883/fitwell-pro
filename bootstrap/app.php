@@ -28,6 +28,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'nocache' => \App\Http\Middleware\NoCacheHeaders::class,
             'role' => \App\Http\Middleware\RoleMiddleware::class,
             'registration.limit' => \App\Http\Middleware\RegistrationRateLimiter::class,
+            'ensure.onboarding.completed' => \App\Http\Middleware\EnsureOnboardingCompleted::class,
         ]);
 
         // Exclude Stripe webhook from CSRF protection
