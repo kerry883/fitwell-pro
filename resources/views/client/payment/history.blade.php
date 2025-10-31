@@ -48,7 +48,13 @@
                                 <div class="text-xs text-gray-500">{{ ucfirst($payment->program->program_category->value) }}</div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm font-semibold text-gray-900">${{ number_format($payment->amount, 2) }}</div>
+                                <div class="text-sm font-semibold text-gray-900">
+                                    @if($payment->currency === 'KES')
+                                        KSh {{ number_format($payment->amount, 2) }}
+                                    @else
+                                        ${{ number_format($payment->amount, 2) }}
+                                    @endif
+                                </div>
                                 <div class="text-xs text-gray-500">{{ strtoupper($payment->currency) }}</div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">

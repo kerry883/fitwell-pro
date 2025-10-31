@@ -27,6 +27,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'admin.session' => \App\Http\Middleware\AdminSessionTimeout::class,
             'nocache' => \App\Http\Middleware\NoCacheHeaders::class,
             'role' => \App\Http\Middleware\RoleMiddleware::class,
+            'registration.limit' => \App\Http\Middleware\RegistrationRateLimiter::class,
         ]);
 
         // Exclude Stripe webhook from CSRF protection

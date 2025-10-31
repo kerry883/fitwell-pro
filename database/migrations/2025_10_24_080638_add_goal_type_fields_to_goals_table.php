@@ -13,8 +13,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('goals', function (Blueprint $table) {
-            // Update existing type enum to include new values
-            DB::statement("ALTER TABLE goals MODIFY COLUMN type ENUM('client_set', 'trainer_set', 'program_based', 'milestone', 'primary', 'secondary', 'long_term', 'short_term') DEFAULT 'trainer_set'");
+            // Drop and recreate the type column with new enum values
+            $table->dropColumn('type');
+            $table->enum('type', [
+                'client_set', 'trainer_set', 'program_based', 'milestone',
+                'primary', 'secondary', 'long_term', 'short_term'
+            ])->default('trainer_set')->after('user_id');
+            
             $table->boolean('is_active_for_matching')->default(false)->after('notes');
             $table->json('medical_considerations')->nullable()->after('is_active_for_matching');
         });

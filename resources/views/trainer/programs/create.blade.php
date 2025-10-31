@@ -213,9 +213,9 @@
                                         </div>
                                     </div>
                                     <div class="col-md-6" x-show="!formData.is_free">
-                                        <label for="price" class="form-label">Price ($) <span class="text-danger">*</span></label>
-                                        <input type="number" class="form-control" id="price" name="price" min="0" step="0.01" :required="!formData.is_free" value="0">
-                                        <small class="text-muted">Leave as 0 for free programs</small>
+                                        <label for="price" class="form-label">Price (KSh) <span class="text-danger">*</span></label>
+                                        <input type="number" class="form-control" id="price" name="price" min="0" step="1" :required="!formData.is_free" value="0">
+                                        <small class="text-muted">Enter price in Kenyan Shillings (KSh). Leave as 0 for free programs</small>
                                     </div>
                                     <div class="col-md-6" x-show="!formData.is_free">
                                         <label for="payment_deadline_hours" class="form-label">Payment Deadline (Hours)</label>

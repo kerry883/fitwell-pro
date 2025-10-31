@@ -3,16 +3,18 @@
 namespace App\Mail;
 
 use App\Models\User;
+use App\Services\DevMailLogger;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Log;
 
-class OtpVerificationMail extends Mailable implements ShouldQueue
+class OtpVerificationMail extends Mailable
 {
-    use Queueable, SerializesModels;
+    use SerializesModels;
 
     public $user;
     public $otpCode;
@@ -24,6 +26,19 @@ class OtpVerificationMail extends Mailable implements ShouldQueue
     {
         $this->user = $user;
         $this->otpCode = $otpCode;
+
+        // Log email details in development
+        try {
+            if (app()->environment('local')) {
+                DevMailLogger::logOtpEmail($user, $otpCode);
+            }
+        } catch (\Exception $e) {
+            Log::error('Failed to log OTP email', [
+                'error' => $e->getMessage(),
+                'user' => $user->email,
+                'trace' => $e->getTraceAsString()
+            ]);
+        }
     }
 
     /**
@@ -31,8 +46,16 @@ class OtpVerificationMail extends Mailable implements ShouldQueue
      */
     public function envelope(): Envelope
     {
+        $subject = app()->environment('local')
+            ? '[DEV] FitWell Pro - Your OTP Verification Code'
+            : 'Verify Your FitWell Pro Account - OTP Code';
+
         return new Envelope(
-            subject: 'Verify Your FitWell Pro Account - OTP Code',
+            subject: $subject,
+            from: new \Illuminate\Mail\Mailables\Address(
+                config('mail.from.address'),
+                config('mail.from.name')
+            )
         );
     }
 
@@ -46,8 +69,25 @@ class OtpVerificationMail extends Mailable implements ShouldQueue
             with: [
                 'user' => $this->user,
                 'otpCode' => $this->otpCode,
+                'isDevelopment' => app()->environment('local'),
             ]
         );
+    }
+
+    /**
+     * Handle a failed sending attempt.
+     */
+    public function failed(\Throwable $exception): void
+    {
+        DevMailLogger::logDeliveryStatus($this->user, 'failed', $exception->getMessage());
+    }
+
+    /**
+     * Handle a successful sending attempt.
+     */
+    public function sent(): void
+    {
+        DevMailLogger::logDeliveryStatus($this->user, 'sent');
     }
 
     /**

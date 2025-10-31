@@ -168,7 +168,7 @@
                                  x-transition:leave-end="transform opacity-0 scale-95"
                                  @click.away="profileOpen = false"
                                  class="absolute right-0 z-10 mt-2.5 w-32 origin-top-right rounded-md bg-white py-2 shadow-lg ring-1 ring-gray-900/5">
-                                <a href="{{ route('profile.index') }}" class="block px-3 py-1 text-sm leading-6 text-gray-900 hover:bg-gray-50">Your profile</a>
+                                <a href="{{ route('client.profile.index') }}" class="block px-3 py-1 text-sm leading-6 text-gray-900 hover:bg-gray-50">Your profile</a>
                                 <a href="{{ route('client.settings.index') }}" class="block px-3 py-1 text-sm leading-6 text-gray-900 hover:bg-gray-50">Settings</a>
                                 <form method="POST" action="{{ route('logout') }}" class="block">
                                     @csrf

@@ -13,6 +13,21 @@ class Program extends Model
 {
     use HasFactory;
 
+    protected $casts = [
+        'program_category' => ProgramCategory::class,
+        'goals' => 'array',
+        'dietary_preferences' => 'array',
+        'macros_target' => 'array',
+        'equipment_required' => 'array',
+        'is_public' => 'boolean',
+        'includes_meal_prep' => 'boolean',
+        'includes_shopping_list' => 'boolean',
+        'price' => 'decimal:2',
+        'is_free' => 'boolean',
+        'requires_approval' => 'boolean',
+        'auto_approve_criteria' => 'array',
+    ];
+
     protected $fillable = [
         'trainer_id',
         'program_category',
@@ -35,27 +50,13 @@ class Program extends Model
         'max_clients',
         'current_clients',
         'price',
+        'currency',
         'is_free',
         'requires_approval',
         'auto_approve_criteria',
         'payment_deadline_hours',
         'refund_policy_days',
         'notes',
-    ];
-
-    protected $casts = [
-        'program_category' => ProgramCategory::class,
-        'goals' => 'array',
-        'dietary_preferences' => 'array',
-        'macros_target' => 'array',
-        'equipment_required' => 'array',
-        'is_public' => 'boolean',
-        'includes_meal_prep' => 'boolean',
-        'includes_shopping_list' => 'boolean',
-        'price' => 'decimal:2',
-        'is_free' => 'boolean',
-        'requires_approval' => 'boolean',
-        'auto_approve_criteria' => 'array',
     ];
 
     /**
@@ -127,6 +128,58 @@ class Program extends Model
     public function requiresApproval(): bool
     {
         return $this->requires_approval !== false;
+    }
+
+    /**
+     * Currency helper methods
+     */
+    public function getPriceInKES(): float
+    {
+        if ($this->currency === 'KES') {
+            return (float) $this->price;
+        }
+        
+        // Convert from other currency to KES
+        $rate = config('currency.kes_to_usd_rate');
+        if ($this->currency === 'USD') {
+            return (float) $this->price * $rate;
+        }
+        
+        return (float) $this->price;
+    }
+
+    public function getPriceInUSD(): float
+    {
+        if ($this->currency === 'USD') {
+            return (float) $this->price;
+        }
+        
+        // Convert from KES to USD
+        $rate = config('currency.kes_to_usd_rate');
+        if ($this->currency === 'KES') {
+            return (float) $this->price / $rate;
+        }
+        
+        return (float) $this->price;
+    }
+
+    public function getFormattedPrice(): string
+    {
+        $currency = $this->currency ?? config('currency.default');
+        $currencyConfig = config("currency.currencies.{$currency}");
+        
+        if (!$currencyConfig) {
+            return number_format($this->price, 2);
+        }
+        
+        $formattedAmount = number_format($this->price, $currencyConfig['decimals']);
+        return sprintf($currencyConfig['format'], $formattedAmount);
+    }
+
+    public function getCurrencySymbol(): string
+    {
+        $currency = $this->currency ?? config('currency.default');
+        return config("currency.currencies.{$currency}.symbol", '');
     }
 
     /**

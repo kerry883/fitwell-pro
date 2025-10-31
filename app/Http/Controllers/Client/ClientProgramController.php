@@ -180,22 +180,22 @@ class ClientProgramController extends Controller
                     ]);
                 }
 
-                // Create notification for trainer
+                // Create and broadcast notification for trainer
                 $trainer = $program->trainer->user;
-                $notification = \App\Models\Notification::create([
-                    'user_id' => $trainer->id,
-                    'type' => 'enrollment_request',
-                    'title' => 'New Program Enrollment Request',
-                    'message' => "Client {$client->user->full_name} has requested to enroll in your program '{$program->name}'.",
-                    'data' => [
+                $notification = app(\App\Services\NotificationService::class)->send(
+                    $trainer,
+                    'enrollment_request',
+                    'New Program Enrollment Request',
+                    "Client {$client->user->full_name} has requested to enroll in your program '{$program->name}'.",
+                    [
                         'program_id' => $program->id,
                         'user_id' => $client->user->id,
                         'client_id' => $client->id,
                         'assignment_id' => $assignment->id,
-                    ],
-                ]);
+                    ]
+                );
 
-                // Broadcast the notification
+                // Broadcast the notification (NotificationCreated event is fired automatically)
                 broadcast(new \App\Events\NotificationCreated($notification))->toOthers();
 
                 return redirect()->back()->with('success', 'Successfully enrolled in program');

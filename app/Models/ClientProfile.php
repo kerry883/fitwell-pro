@@ -9,6 +9,12 @@ class ClientProfile extends Model
 {
     use HasFactory;
 
+    protected $casts = [
+        'preferred_workout_types' => 'array',
+        'equipment_access' => 'array',
+        'medical_conditions' => 'array',
+    ];
+
     protected $fillable = [
         'user_id',
         'trainer_id',
@@ -43,7 +49,7 @@ class ClientProfile extends Model
     protected function casts(): array
     {
         return [
-            'medical_conditions' => 'array',
+            // Cast definitions moved to property $casts above
             'injuries' => 'array',
             'preferred_workout_types' => 'array',
             'goals' => 'array',

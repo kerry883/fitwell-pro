@@ -44,7 +44,7 @@
                 
                 <div class="flex justify-between">
                     <span class="text-gray-600">Amount</span>
-                    <span class="font-medium text-gray-900">${{ number_format($program->price, 2) }}</span>
+                    <span class="font-medium text-gray-900">{{ $program->getFormattedPrice() }}</span>
                 </div>
 
                 @if($assignment->payment_deadline)

@@ -19,6 +19,7 @@ class Kernel extends ConsoleKernel
         PruneOldNotifications::class,
         SendPaymentReminders::class,
         CancelExpiredPayments::class,
+        Commands\CleanupExpiredOtps::class,
     ];
 
     /**
@@ -37,6 +38,13 @@ class Kernel extends ConsoleKernel
         
         // Cancel expired payment assignments every hour
         $schedule->command('payments:cancel-expired')->hourly();
+
+        // Cleanup expired OTP codes daily at midnight
+        $schedule->command('otp:cleanup')
+            ->daily()
+            ->at('00:00')
+            ->onOneServer()
+            ->withoutOverlapping();
     }
 
     /**

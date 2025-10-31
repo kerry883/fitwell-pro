@@ -21,6 +21,32 @@ class PaymentService
         try {
             $program = $assignment->program;
             
+            // Get price in KES (the stored currency)
+            $priceInKES = $program->getPriceInKES();
+            
+            // Convert to USD for Stripe
+            $priceInUSD = $program->getPriceInUSD();
+            
+            // Validate minimum charge amount (Stripe requires $0.50 USD minimum)
+            // Which is approximately KES 65 (0.50 * 129.20)
+            $minUSD = config('currency.minimum_amounts.stripe.amount', 0.50);
+            $minKES = $minUSD * config('currency.kes_to_usd_rate', 129.20);
+            
+            if ($priceInUSD < $minUSD) {
+                Log::error('Program price below Stripe minimum', [
+                    'program_id' => $program->id,
+                    'program_price_kes' => $priceInKES,
+                    'program_price_usd' => $priceInUSD,
+                    'minimum_required_usd' => $minUSD,
+                    'minimum_required_kes' => $minKES,
+                ]);
+                
+                return [
+                    'success' => false,
+                    'error' => 'This program price (' . $program->getFormattedPrice() . ') is below the minimum charge amount of KSh ' . number_format($minKES, 2) . '. Please contact the trainer to update the program pricing.',
+                ];
+            }
+            
             // Ensure user has a Stripe customer ID
             if (!$user->hasStripeId()) {
                 $user->createAsStripeCustomer([
@@ -32,8 +58,14 @@ class PaymentService
             // Create payment intent using Stripe API directly
             $stripe = new \Stripe\StripeClient(config('cashier.secret'));
             
+            Log::info('Stripe: Creating payment intent', [
+                'amount_kes' => $priceInKES,
+                'amount_usd' => $priceInUSD,
+                'user_id' => $user->id
+            ]);
+
             $paymentIntent = $stripe->paymentIntents->create([
-                'amount' => $program->price * 100, // Convert to cents
+                'amount' => (int)($priceInUSD * 100), // Convert USD to cents
                 'currency' => 'usd',
                 'customer' => $user->stripeId(),
                 'metadata' => [
@@ -42,18 +74,24 @@ class PaymentService
                     'assignment_id' => $assignment->id,
                     'trainer_id' => $program->trainer_id,
                     'user_id' => $user->id,
+                    'original_price_kes' => $priceInKES,
+                    'converted_price_usd' => $priceInUSD,
                 ],
                 'description' => "Payment for {$program->name}",
             ]);
 
-            // Create payment record in database
+            Log::info('Stripe: Payment intent created successfully', [
+                'payment_intent_id' => $paymentIntent->id
+            ]);
+
+            // Create payment record in database (store in original KES currency)
             $payment = Payment::create([
                 'user_id' => $user->id,
                 'program_assignment_id' => $assignment->id,
                 'program_id' => $program->id,
                 'trainer_id' => $program->trainer_id,
-                'amount' => $program->price,
-                'currency' => 'usd',
+                'amount' => $priceInKES, // Store in KES
+                'currency' => 'KES', // Store as KES
                 'payment_type' => 'one_time',
                 'stripe_payment_intent_id' => $paymentIntent->id,
                 'stripe_customer_id' => $user->stripeId(),
@@ -64,10 +102,35 @@ class PaymentService
                 'success' => true,
                 'client_secret' => $paymentIntent->client_secret,
                 'payment_id' => $payment->id,
-                'amount' => $program->price,
+                'amount' => $priceInKES,
+                'currency' => 'KES',
+                'amount_usd' => $priceInUSD,
             ];
         } catch (ApiErrorException $e) {
             Log::error('Stripe payment intent creation failed', [
+                'user_id' => $user->id,
+                'assignment_id' => $assignment->id,
+                'error' => $e->getMessage(),
+                'error_type' => get_class($e),
+            ]);
+
+            // Check if it's a network/connection error
+            $errorMessage = $e->getMessage();
+            if (str_contains($errorMessage, 'Could not resolve host') || 
+                str_contains($errorMessage, 'Could not connect') ||
+                str_contains($errorMessage, 'Network error')) {
+                return [
+                    'success' => false,
+                    'error' => 'Network connection error. Please check your internet connection and try again. If the problem persists, please try M-Pesa payment instead.',
+                ];
+            }
+
+            return [
+                'success' => false,
+                'error' => 'Unable to create payment. Please try again later or use M-Pesa payment.',
+            ];
+        } catch (\Exception $e) {
+            Log::error('Unexpected error creating payment intent', [
                 'user_id' => $user->id,
                 'assignment_id' => $assignment->id,
                 'error' => $e->getMessage(),
@@ -75,7 +138,7 @@ class PaymentService
 
             return [
                 'success' => false,
-                'error' => 'Unable to create payment. Please try again later.',
+                'error' => 'An unexpected error occurred. Please try again later or use M-Pesa payment.',
             ];
         }
     }
@@ -339,4 +402,90 @@ class PaymentService
 
         return $remindersSent;
     }
+
+    /**
+     * Request a refund for a payment.
+     */
+    public function requestRefund(Payment $payment, string $reason): array
+    {
+        DB::beginTransaction();
+
+        try {
+            // Verify payment can be refunded
+            if (!$payment->canRefund()) {
+                return [
+                    'success' => false,
+                    'error' => 'This payment is not eligible for a refund.',
+                ];
+            }
+
+            // Create refund in Stripe
+            $stripe = new \Stripe\StripeClient(config('cashier.secret'));
+            
+            $refund = $stripe->refunds->create([
+                'payment_intent' => $payment->stripe_payment_intent_id,
+                'reason' => 'requested_by_customer',
+                'metadata' => [
+                    'reason' => $reason,
+                    'user_id' => $payment->user_id,
+                    'payment_id' => $payment->id,
+                ],
+            ]);
+
+            // Update payment record
+            $payment->update([
+                'status' => 'refunded',
+                'refund_id' => $refund->id,
+                'refund_reason' => $reason,
+                'refunded_at' => now(),
+            ]);
+
+            // Update assignment status if needed
+            if ($payment->assignment) {
+                $payment->assignment->update([
+                    'status' => ProgramAssignmentStatus::CANCELLED,
+                ]);
+
+                // Decrement program's current_clients counter
+                $payment->assignment->program->decrement('current_clients');
+            }
+
+            DB::commit();
+
+            Log::info('Refund processed successfully', [
+                'payment_id' => $payment->id,
+                'refund_id' => $refund->id,
+            ]);
+
+            return [
+                'success' => true,
+                'message' => 'Refund processed successfully. The amount will be returned to your original payment method within 5-10 business days.',
+            ];
+        } catch (ApiErrorException $e) {
+            DB::rollBack();
+            
+            Log::error('Stripe refund failed', [
+                'payment_id' => $payment->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return [
+                'success' => false,
+                'error' => 'Unable to process refund. Please contact support.',
+            ];
+        } catch (\Exception $e) {
+            DB::rollBack();
+            
+            Log::error('Refund processing failed', [
+                'payment_id' => $payment->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return [
+                'success' => false,
+                'error' => 'An error occurred while processing your refund.',
+            ];
+        }
+    }
 }
+

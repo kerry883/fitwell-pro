@@ -53,6 +53,12 @@ Route::middleware(['auth', 'role:client'])->prefix('client')->name('client.')->g
         Route::get('/history', 'history')->name('history');
         Route::get('/{payment}/refund', 'requestRefund')->name('refund');
         Route::post('/{payment}/refund', 'processRefund')->name('process-refund');
+
+        // M-Pesa payment routes
+        Route::post('/{assignment}/mpesa/initiate', [App\Http\Controllers\MpesaController::class, 'initiatePayment'])
+            ->name('mpesa.initiate');
+        Route::get('/{assignment}/mpesa/status', [App\Http\Controllers\MpesaController::class, 'checkPaymentStatus'])
+            ->name('mpesa.status');
     });
     
     // Workouts

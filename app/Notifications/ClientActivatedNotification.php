@@ -27,7 +27,14 @@ class ClientActivatedNotification extends Notification
      */
     public function via(object $notifiable): array
     {
-        return ['database', 'mail'];
+        // Only send email in production to avoid rate limiting in development
+        $channels = [\App\Channels\CustomDatabaseChannel::class];
+        
+        if (app()->environment('production')) {
+            $channels[] = 'mail';
+        }
+        
+        return $channels;
     }
 
     /**
@@ -61,14 +68,18 @@ class ClientActivatedNotification extends Notification
     public function toArray(object $notifiable): array
     {
         return [
-            'assignment_id' => $this->assignment->id,
-            'client_id' => $this->assignment->user->id,
-            'client_name' => $this->assignment->user->name,
-            'program_id' => $this->assignment->program->id,
-            'program_title' => $this->assignment->program->title,
-            'is_paid' => !$this->assignment->program->is_free,
-            'message' => 'New client activated: ' . $this->assignment->user->name,
-            'action_url' => route('trainer.assignments.index'),
+            'title' => 'New Client Activated',
+            'message' => 'New client activated: ' . $this->assignment->user->name . ' for ' . $this->assignment->program->title,
+            'type' => 'client_activated',
+            'data' => [
+                'assignment_id' => $this->assignment->id,
+                'client_id' => $this->assignment->user->id,
+                'client_name' => $this->assignment->user->name,
+                'program_id' => $this->assignment->program->id,
+                'program_title' => $this->assignment->program->title,
+                'is_paid' => !$this->assignment->program->is_free,
+                'action_url' => route('trainer.assignments.index'),
+            ],
         ];
     }
 }

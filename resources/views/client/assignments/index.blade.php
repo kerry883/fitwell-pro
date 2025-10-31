@@ -109,7 +109,7 @@
                                     </a>
                                     <!-- Cancel Payment & Withdraw Button -->
                                     <button type="button"
-                                            onclick="openCancelPaymentModal({{ $assignment->id }}, '{{ addslashes($assignment->program->name) }}', {{ $assignment->program->price }})"
+                                            onclick="openCancelPaymentModal({{ $assignment->id }}, '{{ addslashes($assignment->program->name) }}', {{ $assignment->program->getPriceInKES() }}, '{{ $assignment->program->getCurrencySymbol() }}')"
                                             class="inline-flex items-center justify-center px-4 py-2.5 border border-red-300 text-sm font-medium rounded-lg text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors duration-200 whitespace-nowrap">
                                         <svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -419,9 +419,9 @@ function submitWithdraw() {
 }
 
 // Cancel Payment Modal Functions
-function openCancelPaymentModal(assignmentId, programName, programPrice) {
+function openCancelPaymentModal(assignmentId, programName, programPrice, currencySymbol) {
     document.getElementById('cancelProgramName').textContent = programName;
-    document.getElementById('cancelProgramPrice').textContent = '$' + parseFloat(programPrice).toFixed(2);
+    document.getElementById('cancelProgramPrice').textContent = currencySymbol + ' ' + parseFloat(programPrice).toFixed(2);
     document.getElementById('cancelPaymentForm').action = `/client/assignments/${assignmentId}/cancel-payment`;
     document.getElementById('cancelReason').value = '';
     document.getElementById('cancelPaymentModal').classList.remove('hidden');

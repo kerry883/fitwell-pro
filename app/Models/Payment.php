@@ -19,6 +19,7 @@ class Payment extends Model
         'stripe_payment_intent_id',
         'stripe_subscription_id',
         'stripe_customer_id',
+        'transaction_id', // For M-Pesa's CheckoutRequestID
         'status',
         'paid_at',
         'refunded_at',

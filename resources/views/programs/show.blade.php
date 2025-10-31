@@ -34,7 +34,7 @@
                     Enrolled
                 </span>
             @elseif($program->can_enroll)
-                <form method="POST" action="{{ route('programs.enroll', $program->id) }}">
+                <form method="POST" action="{{ route('client.programs.enroll', $program->id) }}">
                     @csrf
                     <button type="submit" class="btn-primary">
                         <svg class="-ml-0.5 mr-1.5 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -61,11 +61,14 @@
             </div>
 
             <!-- Program Goals -->
-            @if($program->goals)
+            @php
+                $programGoals = is_array($program->goals) ? $program->goals : (is_string($program->goals) ? json_decode($program->goals, true) : []);
+            @endphp
+            @if(!empty($programGoals))
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
                     <h3 class="text-lg font-semibold text-gray-900 mb-4">Program Goals</h3>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        @foreach($program->goals as $goal)
+                        @foreach($programGoals as $goal)
                             <div class="flex items-center space-x-3">
                                 <div class="flex-shrink-0">
                                     <div class="w-2 h-2 bg-emerald-500 rounded-full"></div>
@@ -78,11 +81,14 @@
             @endif
 
             <!-- Equipment Required -->
-            @if($program->equipment_required)
+            @php
+                $programEquipment = is_array($program->equipment_required) ? $program->equipment_required : (is_string($program->equipment_required) ? json_decode($program->equipment_required, true) : []);
+            @endphp
+            @if(!empty($programEquipment))
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
                     <h3 class="text-lg font-semibold text-gray-900 mb-4">Equipment Required</h3>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        @foreach($program->equipment_required as $equipment)
+                        @foreach($programEquipment as $equipment)
                             <div class="flex items-center space-x-3">
                                 <div class="flex-shrink-0">
                                     <svg class="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -230,7 +236,7 @@
                 <div class="bg-emerald-50 rounded-xl border border-emerald-200 p-6">
                     <h3 class="text-lg font-semibold text-emerald-900 mb-2">Ready to Start?</h3>
                     <p class="text-emerald-700 text-sm mb-4">Enroll now and begin your fitness journey today.</p>
-                    <form method="POST" action="{{ route('programs.enroll', $program->id) }}">
+                    <form method="POST" action="{{ route('client.programs.enroll', $program->id) }}">
                         @csrf
                         <button type="submit" class="w-full btn-primary bg-emerald-600 hover:bg-emerald-700">
                             Enroll in Program

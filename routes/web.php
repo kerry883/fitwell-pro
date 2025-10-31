@@ -26,6 +26,7 @@ Route::get('/', function () {
 
 // Stripe Webhook (must be outside auth middleware and CSRF protection)
 Route::post('/stripe/webhook', [\App\Http\Controllers\PaymentController::class, 'webhook'])->name('stripe.webhook');
+Route::post('/mpesa/callback', [\App\Http\Controllers\MpesaController::class, 'handleCallback'])->name('mpesa.callback');
 
 /*
 |--------------------------------------------------------------------------
@@ -40,7 +41,7 @@ Route::middleware('guest')->group(function () {
     
     // Registration
     Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
-    Route::post('/register', [RegisterController::class, 'register']);
+    Route::post('/register', [RegisterController::class, 'register'])->middleware('registration.limit');
 
     // Social Authentication (Google and Facebook)
     Route::get('/auth/{provider}/redirect', [SocialAuthController::class, 'redirect'])

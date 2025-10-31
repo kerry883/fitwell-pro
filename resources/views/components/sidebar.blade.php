@@ -29,7 +29,7 @@
 
                     <!-- Workouts -->
                     <li>
-                        <a href="{{ route('workouts.index') }}" 
+                        <a href="{{ route('client.workouts.index') }}" 
                            class="group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold {{ request()->routeIs('workouts.*') ? 'bg-emerald-50 text-emerald-700' : 'text-gray-700 hover:text-emerald-700 hover:bg-gray-50' }}">
                             <svg class="h-6 w-6 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M15.362 5.214A8.252 8.252 0 0112 21 8.25 8.25 0 016.038 7.048 8.287 8.287 0 009 9.6a8.983 8.983 0 013.361-6.867 8.21 8.21 0 003 2.48z" />
@@ -41,7 +41,7 @@
 
                     <!-- Nutrition -->
                     <li>
-                        <a href="{{ route('nutrition.index') }}" 
+                        <a href="{{ route('client.nutrition.index') }}" 
                            class="group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold {{ request()->routeIs('nutrition.*') ? 'bg-emerald-50 text-emerald-700' : 'text-gray-700 hover:text-emerald-700 hover:bg-gray-50' }}">
                             <svg class="h-6 w-6 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 8.25v-1.5m0 1.5c-1.355 0-2.697.056-4.024.166C6.845 8.51 6 9.473 6 10.608v2.513m6-4.87c1.355 0 2.697.055 4.024.165C17.155 8.51 18 9.473 18 10.608v2.513m-3-4.87v-1.5m-6 1.5v-1.5m12 9.75l-1.5-1.5M6 18.75l-1.5-1.5m0 0v1.5m0-1.5h1.5m13.5-3l-1.5 1.5M18 15.75l1.5-1.5m0 0v-1.5m0 1.5h-1.5" />
@@ -63,7 +63,7 @@
 
                     <!-- Progress -->
                     <li>
-                        <a href="{{ route('progress.index') }}" 
+                        <a href="{{ route('client.progress.index') }}" 
                            class="group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold {{ request()->routeIs('progress.*') ? 'bg-emerald-50 text-emerald-700' : 'text-gray-700 hover:text-emerald-700 hover:bg-gray-50' }}">
                             <svg class="h-6 w-6 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
@@ -74,7 +74,7 @@
 
                     <!-- Calendar -->
                     <li>
-                        <a href="{{ route('calendar.index') }}" 
+                        <a href="{{ route('client.calendar.index') }}" 
                            class="group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold {{ request()->routeIs('calendar.*') ? 'bg-emerald-50 text-emerald-700' : 'text-gray-700 hover:text-emerald-700 hover:bg-gray-50' }}">
                             <svg class="h-6 w-6 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5a2.25 2.25 0 002.25-2.25m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5a2.25 2.25 0 012.25 2.25v7.5m-9-6h.008v.008H12V12.75z" />
@@ -109,7 +109,7 @@
                         </a>
                     </li>
                     <li>
-                        <a href="{{ route('profile.index') }}" 
+                        <a href="{{ route('client.profile.index') }}" 
                            class="group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold {{ request()->routeIs('profile.*') ? 'bg-emerald-50 text-emerald-700' : 'text-gray-700 hover:text-emerald-700 hover:bg-gray-50' }}">
                             <svg class="h-6 w-6 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />

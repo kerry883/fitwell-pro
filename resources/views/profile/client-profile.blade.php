@@ -18,7 +18,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                 </svg>
             </button>
-            <form id="photo-form" action="{{ route('profile.upload-photo') }}" method="POST" enctype="multipart/form-data" class="hidden">
+            <form id="photo-form" action="{{ route('client.profile.upload-photo') }}" method="POST" enctype="multipart/form-data" class="hidden">
                 @csrf
                 <input type="file" id="photo-upload" name="profile_photo" accept="image/*" onchange="document.getElementById('photo-form').submit()">
             </form>
@@ -57,7 +57,7 @@
                 </button>
             </div>
 
-            <form id="basic-info-form" action="{{ route('profile.update') }}" method="POST" class="space-y-6">
+            <form id="basic-info-form" action="{{ route('client.profile.update') }}" method="POST" class="space-y-6">
                 @csrf
                 @method('PATCH')
 
@@ -145,7 +145,7 @@
                 </button>
             </div>
 
-            <form id="body-measurements-form" action="{{ route('profile.update') }}" method="POST" class="space-y-6">
+            <form id="body-measurements-form" action="{{ route('client.profile.update') }}" method="POST" class="space-y-6">
                 @csrf
                 @method('PATCH')
 
@@ -189,7 +189,7 @@
                 </button>
             </div>
 
-            <form id="fitness-prefs-form" action="{{ route('profile.update') }}" method="POST" class="space-y-6">
+            <form id="fitness-prefs-form" action="{{ route('client.profile.update') }}" method="POST" class="space-y-6">
                 @csrf
                 @method('PATCH')
 
@@ -225,12 +225,16 @@
                     <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
                         @php
                             $workoutTypes = ['Strength Training', 'Cardio', 'Yoga', 'Pilates', 'HIIT', 'CrossFit', 'Running', 'Swimming', 'Cycling'];
-                            $currentTypes = $profile->preferred_workout_types ?? [];
+                            $currentTypes = is_array($profile->preferred_workout_types) 
+                                ? $profile->preferred_workout_types 
+                                : (is_string($profile->preferred_workout_types) 
+                                    ? json_decode($profile->preferred_workout_types, true) 
+                                    : []);
                         @endphp
                         @foreach($workoutTypes as $type)
                             <label class="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
                                 <input type="checkbox" name="preferred_workout_types[]" value="{{ $type }}"
-                                       {{ in_array($type, $currentTypes) ? 'checked' : '' }}
+                                       {{ is_array($currentTypes) && in_array($type, $currentTypes) ? 'checked' : '' }}
                                        class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
                                 <span class="ml-2 text-sm text-gray-700">{{ $type }}</span>
                             </label>
@@ -271,7 +275,7 @@
                 </div>
             </div>
 
-            <form id="medical-info-form" action="{{ route('profile.update') }}" method="POST" class="space-y-6">
+            <form id="medical-info-form" action="{{ route('client.profile.update') }}" method="POST" class="space-y-6">
                 @csrf
                 @method('PATCH')
 
@@ -315,7 +319,7 @@
                 </button>
             </div>
 
-            <form id="goals-form" action="{{ route('profile.update-goals') }}" method="POST" class="space-y-4">
+            <form id="goals-form" action="{{ route('client.profile.update-goals') }}" method="POST" class="space-y-4">
                 @csrf
                 @method('PATCH')
 

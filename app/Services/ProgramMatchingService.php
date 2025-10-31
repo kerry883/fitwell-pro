@@ -143,12 +143,15 @@ class ProgramMatchingService
      */
     private function calculateWorkoutTypesMatch(ClientProfile $client, Program $program): float
     {
-        $clientPreferences = $client->preferred_workout_types ?? [];
+        $clientPreferences = is_array($client->preferred_workout_types) ? $client->preferred_workout_types : [];
         $programType = strtolower($program->program_type ?? '');
 
         if (empty($clientPreferences)) {
             return 50.0; // Neutral when no preferences specified
         }
+
+        // Ensure all preferences are lowercase for consistent comparison
+        $clientPreferences = array_map('strtolower', $clientPreferences);
 
         // Check for exact matches first
         if (in_array($programType, $clientPreferences)) {
@@ -171,7 +174,7 @@ class ProgramMatchingService
      */
     private function calculateEquipmentMatch(ClientProfile $client, Program $program): float
     {
-        $requiredEquipment = $program->equipment_required ?? [];
+        $requiredEquipment = is_array($program->equipment_required) ? $program->equipment_required : [];
 
         if (empty($requiredEquipment)) {
             return 100.0; // No equipment required = perfect match
@@ -180,7 +183,11 @@ class ProgramMatchingService
         // For now, assume clients have basic equipment
         // Future enhancement: Add equipment_access field to client profile
         $basicEquipment = ['dumbbells', 'barbell', 'resistance bands', 'bodyweight'];
-        $clientEquipment = $client->equipment_access ?? $basicEquipment;
+        $clientEquipment = is_array($client->equipment_access) ? $client->equipment_access : $basicEquipment;
+
+        // Ensure all equipment strings are lowercase for consistent comparison
+        $requiredEquipment = array_map('strtolower', $requiredEquipment);
+        $clientEquipment = array_map('strtolower', $clientEquipment);
 
         $availableEquipment = array_intersect($requiredEquipment, $clientEquipment);
         $availabilityRatio = count($availableEquipment) / count($requiredEquipment);

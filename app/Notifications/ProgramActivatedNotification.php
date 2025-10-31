@@ -27,7 +27,14 @@ class ProgramActivatedNotification extends Notification
      */
     public function via(object $notifiable): array
     {
-        return ['database', 'mail'];
+        // Only send email in production to avoid rate limiting in development
+        $channels = [\App\Channels\CustomDatabaseChannel::class];
+        
+        if (app()->environment('production')) {
+            $channels[] = 'mail';
+        }
+        
+        return $channels;
     }
 
     /**
@@ -56,11 +63,15 @@ class ProgramActivatedNotification extends Notification
     public function toArray(object $notifiable): array
     {
         return [
-            'assignment_id' => $this->assignment->id,
-            'program_id' => $this->assignment->program->id,
-            'program_title' => $this->assignment->program->title,
-            'message' => 'Your enrollment has been approved and activated!',
-            'action_url' => route('client.programs.show', $this->assignment->program),
+            'title' => 'Program Activated',
+            'message' => 'Your enrollment in ' . $this->assignment->program->title . ' has been approved and activated!',
+            'type' => 'program_activated',
+            'data' => [
+                'assignment_id' => $this->assignment->id,
+                'program_id' => $this->assignment->program->id,
+                'program_title' => $this->assignment->program->title,
+                'action_url' => route('client.programs.show', $this->assignment->program),
+            ],
         ];
     }
 }

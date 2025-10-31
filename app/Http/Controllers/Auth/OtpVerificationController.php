@@ -85,20 +85,58 @@ class OtpVerificationController extends Controller
             UserVerification::create([
                 'user_id' => $user->id,
                 'otp_code' => $otpCode,
-                'expires_at' => now()->addMinutes(10), // 10 minutes expiry
+                'expires_at' => now()->addMinutes((int)env('OTP_EXPIRY_MINUTES', 10)), // OTP expiry from env
             ]);
 
             // Log OTP for development/testing (REMOVE IN PRODUCTION)
-            Log::info('OTP Code Generated', [
-                'user_id' => $user->id,
-                'email' => $user->email,
-                'otp_code' => $otpCode,
-                'expires_at' => now()->addMinutes(10)->toISOString(),
-                'ip' => $request->ip()
-            ]);
+            if (app()->environment('local', 'testing')) {
+                Log::info('OTP Code Generated', [
+                    'user_id' => $user->id,
+                    'email' => $user->email,
+                    'otp_code' => $otpCode,
+                    'expires_at' => now()->addMinutes((int)config('otp.expiry_minutes', 10))->toISOString(),
+                    'ip' => $request->ip()
+                ]);
+            }
 
-            // Send email (enqueue mail job)
-            Mail::to($user->email)->queue(new OtpVerificationMail($user, $otpCode));
+            // Send email immediately with error handling
+            try {
+                Mail::to($user->email)->send(new OtpVerificationMail($user, $otpCode));
+                
+                return response()->json([
+                    'success' => true,
+                    'message' => 'OTP code has been sent to your email.',
+                    'cooldown' => config('otp.resend_cooldown', 30)
+                ]);
+            } catch (\Exception $e) {
+                Log::error('Failed to send OTP email', [
+                    'error' => $e->getMessage(),
+                    'user' => $user->email,
+                    'trace' => $e->getTraceAsString()
+                ]);
+                
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to send OTP code. Please try again.'
+                ], 500);
+            }
+            try {
+                Mail::to($user->email)->send(new OtpVerificationMail($user, $otpCode));
+                
+                // Log successful send attempt
+                Log::info('Mail send attempt completed', [
+                    'user_id' => $user->id,
+                    'email' => $user->email
+                ]);
+            } catch (\Exception $e) {
+                Log::error('Mail send failed', [
+                    'user_id' => $user->id,
+                    'email' => $user->email,
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString()
+                ]);
+                throw $e;
+            }
 
             // Set resend throttle
             UserVerification::setResendThrottle($user->id, 30);

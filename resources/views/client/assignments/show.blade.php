@@ -176,7 +176,7 @@
                     @if($assignment->program->price)
                         <div>
                             <dt class="text-sm font-medium text-gray-500">Price</dt>
-                            <dd class="text-sm text-gray-900 font-semibold">${{ number_format($assignment->program->price, 2) }}</dd>
+                            <dd class="text-sm text-gray-900 font-semibold">{{ $assignment->program->getFormattedPrice() }}</dd>
                         </div>
                     @endif
                 </dl>

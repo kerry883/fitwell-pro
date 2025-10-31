@@ -12,9 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('workouts', function (Blueprint $table) {
-            //
-            $table->integer('week_number')->after('status');
-            $table->integer('day')->after('week_number')->default(1);
+            if (!Schema::hasColumn('workouts', 'day')) {
+                $table->integer('day')->after('week_number')->default(1);
+            }
         });
     }
 
@@ -24,8 +24,9 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('workouts', function (Blueprint $table) {
-            //
-            $table->dropColumn(['week_number', 'day']);
+            if (Schema::hasColumn('workouts', 'day')) {
+                $table->dropColumn('day');
+            }
         });
     }
 };

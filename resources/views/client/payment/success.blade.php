@@ -52,7 +52,7 @@
             <div class="border-t border-gray-200 mt-4 pt-4">
                 <div class="flex justify-between items-center">
                     <span class="text-lg font-semibold text-gray-900">Amount Paid</span>
-                    <span class="text-2xl font-bold text-green-600">${{ number_format($program->price, 2) }}</span>
+                    <span class="text-2xl font-bold text-green-600">{{ $program->getFormattedPrice() }}</span>
                 </div>
             </div>
         </div>
