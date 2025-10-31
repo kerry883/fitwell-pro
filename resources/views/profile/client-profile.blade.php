@@ -312,7 +312,7 @@
         <!-- Fitness Goals -->
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <div class="flex items-center justify-between mb-4">
-                <h3 class="text-lg font-semibold text-gray-900">Fitness Goals</h3>
+                <h3 class="text-lg font-semibold text-gray-900">Fitness & Nutrition Goals</h3>
                 <button type="button" onclick="toggleEdit('goals')"
                         class="text-blue-600 hover:text-blue-800 text-sm font-medium">
                     Edit
@@ -323,21 +323,86 @@
                 @csrf
                 @method('PATCH')
 
-                <div class="grid grid-cols-1 gap-3">
-                    @php
-                        $availableGoals = ['Weight Loss', 'Muscle Gain', 'Strength Training', 'Endurance', 'Flexibility', 'General Fitness', 'Sports Performance', 'Rehabilitation'];
-                        $currentGoals = old('goals', $profile->goals ?? []);
-                    @endphp
+                @php
+                    // Get current goals from Goal model
+                    $currentGoalCategories = $profile->goals()
+                        ->where('type', 'client_set')
+                        ->where('status', 'active')
+                        ->pluck('category')
+                        ->toArray();
+                    
+                    // Fallback to old goals_deprecated if no goals exist
+                    if (empty($currentGoalCategories)) {
+                        $currentGoalCategories = old('goals', $profile->goals_deprecated ?? []);
+                    }
+                @endphp
 
-                    @foreach($availableGoals as $goal)
-                        <label class="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
-                            <input type="checkbox" name="goals[]" value="{{ $goal }}"
-                                   {{ in_array($goal, $currentGoals) ? 'checked' : '' }}
-                                   class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
-                            <span class="ml-3 text-sm text-gray-700">{{ $goal }}</span>
-                        </label>
-                    @endforeach
+                <!-- Fitness Goals -->
+                <div>
+                    <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                        <i class="fas fa-dumbbell text-green-600"></i> Fitness Goals
+                    </h4>
+                    <div class="grid grid-cols-1 gap-2">
+                        @php
+                            $fitnessGoals = [
+                                'weight_loss' => ['label' => 'Lose Weight', 'icon' => 'fa-weight-scale'],
+                                'muscle_building' => ['label' => 'Build Muscle', 'icon' => 'fa-dumbbell'],
+                                'strength' => ['label' => 'Increase Strength', 'icon' => 'fa-hand-fist'],
+                                'endurance' => ['label' => 'Improve Endurance', 'icon' => 'fa-person-running'],
+                                'flexibility' => ['label' => 'Enhance Flexibility', 'icon' => 'fa-person-stretching'],
+                                'general_fitness' => ['label' => 'General Fitness', 'icon' => 'fa-heart-pulse'],
+                                'sports_performance' => ['label' => 'Sports Performance', 'icon' => 'fa-medal'],
+                            ];
+                        @endphp
+
+                        @foreach($fitnessGoals as $key => $goal)
+                            <label class="flex items-center p-2.5 border-2 rounded-lg cursor-pointer transition-all duration-200 hover:border-green-500 hover:bg-green-50 {{ in_array($key, $currentGoalCategories) ? 'border-green-500 bg-green-50' : 'border-gray-200' }}">
+                                <input type="checkbox" 
+                                       name="goals[]" 
+                                       value="{{ $key }}"
+                                       {{ in_array($key, $currentGoalCategories) ? 'checked' : '' }}
+                                       class="rounded border-gray-300 text-green-600 focus:ring-green-500 mr-2.5">
+                                <i class="fas {{ $goal['icon'] }} text-gray-500 mr-2 text-sm"></i>
+                                <span class="text-sm font-medium text-gray-700">{{ $goal['label'] }}</span>
+                            </label>
+                        @endforeach
+                    </div>
                 </div>
+
+                <!-- Nutrition Goals -->
+                <div>
+                    <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                        <i class="fas fa-apple-whole text-teal-600"></i> Nutrition Goals
+                    </h4>
+                    <div class="grid grid-cols-1 gap-2">
+                        @php
+                            $nutritionGoals = [
+                                'healthy_eating' => ['label' => 'Healthy Eating', 'icon' => 'fa-apple-whole'],
+                                'meal_planning' => ['label' => 'Meal Planning', 'icon' => 'fa-utensils'],
+                                'weight_gain' => ['label' => 'Gain Weight', 'icon' => 'fa-arrow-trend-up'],
+                                'body_composition' => ['label' => 'Body Composition', 'icon' => 'fa-chart-line'],
+                                'nutrition_knowledge' => ['label' => 'Learn Nutrition', 'icon' => 'fa-book'],
+                                'dietary_management' => ['label' => 'Dietary Needs', 'icon' => 'fa-prescription-bottle-medical'],
+                            ];
+                        @endphp
+
+                        @foreach($nutritionGoals as $key => $goal)
+                            <label class="flex items-center p-2.5 border-2 rounded-lg cursor-pointer transition-all duration-200 hover:border-teal-500 hover:bg-teal-50 {{ in_array($key, $currentGoalCategories) ? 'border-teal-500 bg-teal-50' : 'border-gray-200' }}">
+                                <input type="checkbox" 
+                                       name="goals[]" 
+                                       value="{{ $key }}"
+                                       {{ in_array($key, $currentGoalCategories) ? 'checked' : '' }}
+                                       class="rounded border-gray-300 text-teal-600 focus:ring-teal-500 mr-2.5">
+                                <i class="fas {{ $goal['icon'] }} text-gray-500 mr-2 text-sm"></i>
+                                <span class="text-sm font-medium text-gray-700">{{ $goal['label'] }}</span>
+                            </label>
+                        @endforeach
+                    </div>
+                </div>
+
+                @error('goals')
+                    <p class="text-sm text-red-600">{{ $message }}</p>
+                @enderror
 
                 <button type="submit" class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">
                     Update Goals

@@ -84,6 +84,135 @@ class Goal extends Model
     ];
 
     /**
+     * Goal templates for client onboarding (Fitness & Nutrition)
+     */
+    const GOAL_TEMPLATES = [
+        // FITNESS GOALS
+        'weight_loss' => [
+            'title' => 'Lose Weight',
+            'category' => 'weight_loss',
+            'measurement_type' => 'weight',
+            'target_unit' => 'kg',
+            'description' => 'Achieve and maintain a healthy body weight through proper nutrition and exercise',
+        ],
+        'muscle_building' => [
+            'title' => 'Build Muscle Mass',
+            'category' => 'muscle_building',
+            'measurement_type' => 'muscle_mass',
+            'target_unit' => 'kg',
+            'description' => 'Increase lean muscle mass and overall body strength',
+        ],
+        'strength' => [
+            'title' => 'Increase Strength',
+            'category' => 'strength',
+            'measurement_type' => 'performance',
+            'target_unit' => 'kg',
+            'description' => 'Build overall physical strength and power',
+        ],
+        'endurance' => [
+            'title' => 'Improve Endurance',
+            'category' => 'endurance',
+            'measurement_type' => 'distance_based',
+            'target_unit' => 'km',
+            'description' => 'Build cardiovascular endurance and stamina',
+        ],
+        'flexibility' => [
+            'title' => 'Enhance Flexibility',
+            'category' => 'flexibility',
+            'measurement_type' => 'custom',
+            'target_unit' => 'range',
+            'description' => 'Improve overall flexibility and range of motion',
+        ],
+        'general_fitness' => [
+            'title' => 'General Fitness',
+            'category' => 'general_fitness',
+            'measurement_type' => 'custom',
+            'target_unit' => 'level',
+            'description' => 'Overall health and fitness improvement',
+        ],
+        'sports_performance' => [
+            'title' => 'Sports Performance',
+            'category' => 'sports_performance',
+            'measurement_type' => 'performance',
+            'target_unit' => 'score',
+            'description' => 'Enhance athletic performance for specific sports',
+        ],
+        
+        // NUTRITION GOALS
+        'healthy_eating' => [
+            'title' => 'Healthy Eating Habits',
+            'category' => 'health_improvement',
+            'measurement_type' => 'custom',
+            'target_unit' => 'adherence',
+            'description' => 'Develop and maintain balanced, nutritious eating habits',
+        ],
+        'meal_planning' => [
+            'title' => 'Better Meal Planning',
+            'category' => 'health_improvement',
+            'measurement_type' => 'custom',
+            'target_unit' => 'meals',
+            'description' => 'Master meal planning and preparation for consistent nutrition',
+        ],
+        'weight_gain' => [
+            'title' => 'Gain Weight',
+            'category' => 'weight_gain',
+            'measurement_type' => 'weight',
+            'target_unit' => 'kg',
+            'description' => 'Gain healthy weight through proper nutrition and training',
+        ],
+        'body_composition' => [
+            'title' => 'Improve Body Composition',
+            'category' => 'health_improvement',
+            'measurement_type' => 'body_fat',
+            'target_unit' => '%',
+            'description' => 'Optimize body fat percentage and muscle-to-fat ratio',
+        ],
+        'nutrition_knowledge' => [
+            'title' => 'Learn Nutrition',
+            'category' => 'health_improvement',
+            'measurement_type' => 'custom',
+            'target_unit' => 'knowledge',
+            'description' => 'Understand nutrition principles for long-term health',
+        ],
+        'dietary_management' => [
+            'title' => 'Manage Dietary Needs',
+            'category' => 'health_improvement',
+            'measurement_type' => 'custom',
+            'target_unit' => 'compliance',
+            'description' => 'Manage specific dietary requirements (diabetes, allergies, etc.)',
+        ],
+    ];
+
+    /**
+     * Create a goal from a template
+     */
+    public static function createFromTemplate(string $templateKey, ClientProfile $client, array $customData = []): self
+    {
+        if (!isset(self::GOAL_TEMPLATES[$templateKey])) {
+            throw new \InvalidArgumentException("Invalid goal template: {$templateKey}");
+        }
+
+        $template = self::GOAL_TEMPLATES[$templateKey];
+
+        return self::create([
+            'client_id' => $client->id,
+            'trainer_id' => null, // Client-set goals have no trainer
+            'type' => 'client_set',
+            'title' => $template['title'],
+            'category' => $template['category'],
+            'measurement_type' => $template['measurement_type'],
+            'target_unit' => $template['target_unit'],
+            'description' => $template['description'],
+            'status' => 'active',
+            'is_active_for_matching' => true,
+            'priority' => $customData['priority'] ?? 1,
+            'target_value' => $customData['target_value'] ?? null,
+            'target_date' => $customData['target_date'] ?? now()->addMonths(3),
+            'start_date' => now(),
+        ]);
+    }
+
+    /**
      * Relationships
      */
     public function client(): BelongsTo

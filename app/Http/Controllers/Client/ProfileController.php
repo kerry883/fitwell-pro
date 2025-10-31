@@ -33,17 +33,29 @@ class ProfileController extends Controller
     public function updateGoals(Request $request)
     {
         $request->validate([
-            'goals' => 'nullable|array',
-            'goals.*' => 'string|max:255',
+            'goals' => 'nullable|array|max:3',
+            'goals.*' => 'string|in:weight_loss,muscle_building,strength,endurance,flexibility,general_fitness,sports_performance,healthy_eating,meal_planning,weight_gain,body_composition,nutrition_knowledge,dietary_management',
         ]);
 
         $user = Auth::user();
         if ($user->isClient()) {
-            $user->clientProfile->update([
-                'goals' => $request->goals,
-            ]);
+            $clientProfile = $user->clientProfile;
+            
+            // Delete existing client-set goals
+            $clientProfile->goals()
+                ->where('type', 'client_set')
+                ->delete();
+            
+            // Create new goals from selected templates
+            if ($request->has('goals') && is_array($request->goals)) {
+                foreach ($request->goals as $index => $goalKey) {
+                    \App\Models\Goal::createFromTemplate($goalKey, $clientProfile, [
+                        'priority' => $index + 1,
+                    ]);
+                }
+            }
 
-            return redirect()->back()->with('success', 'Fitness goals updated successfully!');
+            return redirect()->back()->with('success', 'Fitness & nutrition goals updated successfully!');
         }
 
         return redirect()->back()->with('error', 'Unable to update goals.');

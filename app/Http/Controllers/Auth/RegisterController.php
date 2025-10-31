@@ -50,7 +50,8 @@ class RegisterController extends Controller
                 'weight' => ['nullable', 'numeric', 'min:30', 'max:300'],
                 'fitness_level' => ['nullable', 'in:beginner,intermediate,advanced'],
                 'activity_level' => ['nullable', 'in:sedentary,lightly_active,moderately_active,very_active,extremely_active'],
-                'fitness_goals' => ['nullable', 'string', 'max:1000'],
+                'fitness_goals' => ['nullable', 'array', 'max:3'],
+                'fitness_goals.*' => ['in:weight_loss,muscle_building,strength,endurance,flexibility,general_fitness,sports_performance,healthy_eating,meal_planning,weight_gain,body_composition,nutrition_knowledge,dietary_management'],
             ]);
         }
 
@@ -82,13 +83,12 @@ class RegisterController extends Controller
                 'weight' => $request->weight,
                 'fitness_level' => $request->fitness_level,
                 'activity_level' => $request->activity_level ?? 'moderately_active',
-                'fitness_goals' => $request->fitness_goals,
                 'email_verified_at' => null, // Will be set after OTP verification
             ]);
 
             // Create appropriate profile based on user type
             if ($user->user_type === 'client') {
-                ClientProfile::create([
+                $clientProfile = ClientProfile::create([
                     'user_id' => $user->id,
                     'status' => 'active',
                     'start_date' => now(),
@@ -96,7 +96,18 @@ class RegisterController extends Controller
                     'emergency_contact_phone' => null,
                     'medical_conditions' => null,
                     'preferred_workout_time' => null,
+                    // NEW: Store selected goals in deprecated field for migration purposes
+                    'goals_deprecated' => $request->fitness_goals ?? [],
                 ]);
+
+                // NEW: Create Goal models from selected templates
+                if ($request->has('fitness_goals') && is_array($request->fitness_goals)) {
+                    foreach ($request->fitness_goals as $index => $goalKey) {
+                        \App\Models\Goal::createFromTemplate($goalKey, $clientProfile, [
+                            'priority' => $index + 1, // First selected = priority 1
+                        ]);
+                    }
+                }
             } elseif ($user->user_type === 'trainer') {
                 TrainerProfile::create([
                     'user_id' => $user->id,

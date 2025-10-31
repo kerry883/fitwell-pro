@@ -13,6 +13,9 @@ class ClientProfile extends Model
         'preferred_workout_types' => 'array',
         'equipment_access' => 'array',
         'medical_conditions' => 'array',
+        'onboarding_completed' => 'boolean',
+        'onboarding_completed_at' => 'datetime',
+        'medical_clearance' => 'boolean',
     ];
 
     protected $fillable = [
@@ -23,12 +26,14 @@ class ClientProfile extends Model
         'medical_conditions',
         'injuries',
         'medications',
+        'medical_notes',
+        'medical_clearance',
         'experience_level',
         'preferred_workout_types',
         'available_days_per_week',
         'preferred_workout_time',
         'workout_duration_preference',
-        'goals',
+        'equipment_access',
         'notes',
         'emergency_contact_name',
         'emergency_contact_phone',
@@ -44,6 +49,10 @@ class ClientProfile extends Model
         'waist_cm',
         'chest_cm',
         'arms_cm',
+        'onboarding_completed',
+        'onboarding_completed_at',
+        'onboarding_step',
+        // Note: 'goals' field removed - use goals relationship instead
     ];
 
     protected function casts(): array
@@ -52,7 +61,7 @@ class ClientProfile extends Model
             // Cast definitions moved to property $casts above
             'injuries' => 'array',
             'preferred_workout_types' => 'array',
-            'goals' => 'array',
+            // Note: 'goals' removed - stored in goals_deprecated field, use goals relationship
             'preferred_workout_time' => 'datetime:H:i',
             'start_date' => 'date',
             'end_date' => 'date',
@@ -88,5 +97,41 @@ class ClientProfile extends Model
     public function goals()
     {
         return $this->hasMany(Goal::class, 'client_id');
+    }
+
+    /**
+     * Onboarding helper methods
+     */
+    public function hasCompletedOnboarding(): bool
+    {
+        return $this->onboarding_completed === true;
+    }
+
+    public function getCurrentOnboardingStep(): int
+    {
+        return $this->onboarding_step ?? 0;
+    }
+
+    public function markOnboardingStep(int $step): void
+    {
+        $this->update(['onboarding_step' => $step]);
+    }
+
+    public function completeOnboarding(): void
+    {
+        $this->update([
+            'onboarding_completed' => true,
+            'onboarding_completed_at' => now(),
+            'onboarding_step' => 7, // Total steps
+        ]);
+    }
+
+    public function hasActiveGoals(): bool
+    {
+        return $this->goals()
+            ->where('type', 'client_set')
+            ->where('is_active_for_matching', true)
+            ->where('status', 'active')
+            ->exists();
     }
 }

@@ -340,14 +340,99 @@
                             </div>
 
                             <div>
-                                <label for="fitness_goals" class="block text-sm font-medium text-gray-700 mb-2">Fitness Goals</label>
-                                <textarea
-                                    id="fitness_goals"
-                                    name="fitness_goals"
-                                    rows="3"
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition duration-200"
-                                    placeholder="Tell us about your fitness goals..."
-                                >{{ old('fitness_goals') }}</textarea>
+                                <label class="block text-sm font-medium text-gray-700 mb-3">Fitness & Nutrition Goals (Select 1-3)</label>
+                                <p class="text-xs text-gray-600 mb-3">Choose the goals that matter most to you. We'll match you with the right programs.</p>
+                                
+                                <div class="space-y-4">
+                                    <!-- Fitness Goals -->
+                                    <div>
+                                        <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                                            <i class="fas fa-dumbbell text-green-600"></i> Fitness Goals
+                                        </h4>
+                                        <div class="grid md:grid-cols-2 gap-2">
+                                            @php
+                                                $fitnessGoals = [
+                                                    'weight_loss' => ['label' => 'Lose Weight', 'icon' => 'fa-weight-scale'],
+                                                    'muscle_building' => ['label' => 'Build Muscle', 'icon' => 'fa-dumbbell'],
+                                                    'strength' => ['label' => 'Increase Strength', 'icon' => 'fa-hand-fist'],
+                                                    'endurance' => ['label' => 'Improve Endurance', 'icon' => 'fa-person-running'],
+                                                    'flexibility' => ['label' => 'Enhance Flexibility', 'icon' => 'fa-person-stretching'],
+                                                    'general_fitness' => ['label' => 'General Fitness', 'icon' => 'fa-heart-pulse'],
+                                                    'sports_performance' => ['label' => 'Sports Performance', 'icon' => 'fa-medal'],
+                                                ];
+                                                $selectedGoals = old('fitness_goals', []);
+                                            @endphp
+
+                                            @foreach($fitnessGoals as $key => $goal)
+                                                <label class="relative flex items-center p-2.5 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-green-500 hover:bg-green-50 transition-all duration-200 group">
+                                                    <input 
+                                                        type="checkbox" 
+                                                        name="fitness_goals[]" 
+                                                        value="{{ $key }}"
+                                                        {{ in_array($key, $selectedGoals) ? 'checked' : '' }}
+                                                        class="peer sr-only"
+                                                    >
+                                                    <div class="peer-checked:bg-green-500 peer-checked:border-transparent border-2 border-gray-300 rounded w-4 h-4 flex items-center justify-center mr-2.5 flex-shrink-0 transition-colors">
+                                                        <svg class="hidden peer-checked:block w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+                                                        </svg>
+                                                    </div>
+                                                    <div class="flex items-center flex-1 min-w-0">
+                                                        <i class="fas {{ $goal['icon'] }} text-gray-500 group-hover:text-green-600 peer-checked:text-green-600 mr-2 text-sm flex-shrink-0"></i>
+                                                        <span class="text-sm font-medium text-gray-700 group-hover:text-gray-900 truncate">{{ $goal['label'] }}</span>
+                                                    </div>
+                                                </label>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Nutrition Goals -->
+                                    <div>
+                                        <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                                            <i class="fas fa-apple-whole text-teal-600"></i> Nutrition Goals
+                                        </h4>
+                                        <div class="grid md:grid-cols-2 gap-2">
+                                            @php
+                                                $nutritionGoals = [
+                                                    'healthy_eating' => ['label' => 'Healthy Eating', 'icon' => 'fa-apple-whole'],
+                                                    'meal_planning' => ['label' => 'Meal Planning', 'icon' => 'fa-utensils'],
+                                                    'weight_gain' => ['label' => 'Gain Weight', 'icon' => 'fa-arrow-trend-up'],
+                                                    'body_composition' => ['label' => 'Body Composition', 'icon' => 'fa-chart-line'],
+                                                    'nutrition_knowledge' => ['label' => 'Learn Nutrition', 'icon' => 'fa-book'],
+                                                    'dietary_management' => ['label' => 'Dietary Needs', 'icon' => 'fa-prescription-bottle-medical'],
+                                                ];
+                                            @endphp
+
+                                            @foreach($nutritionGoals as $key => $goal)
+                                                <label class="relative flex items-center p-2.5 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-teal-500 hover:bg-teal-50 transition-all duration-200 group">
+                                                    <input 
+                                                        type="checkbox" 
+                                                        name="fitness_goals[]" 
+                                                        value="{{ $key }}"
+                                                        {{ in_array($key, $selectedGoals) ? 'checked' : '' }}
+                                                        class="peer sr-only"
+                                                    >
+                                                    <div class="peer-checked:bg-teal-500 peer-checked:border-transparent border-2 border-gray-300 rounded w-4 h-4 flex items-center justify-center mr-2.5 flex-shrink-0 transition-colors">
+                                                        <svg class="hidden peer-checked:block w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+                                                        </svg>
+                                                    </div>
+                                                    <div class="flex items-center flex-1 min-w-0">
+                                                        <i class="fas {{ $goal['icon'] }} text-gray-500 group-hover:text-teal-600 peer-checked:text-teal-600 mr-2 text-sm flex-shrink-0"></i>
+                                                        <span class="text-sm font-medium text-gray-700 group-hover:text-gray-900 truncate">{{ $goal['label'] }}</span>
+                                                    </div>
+                                                </label>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                @error('fitness_goals')
+                                    <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                                <p class="mt-2 text-xs text-gray-500">
+                                    <i class="fas fa-info-circle"></i> Select 1-3 goals to help us personalize your experience
+                                </p>
                             </div>
                         </div>
 
