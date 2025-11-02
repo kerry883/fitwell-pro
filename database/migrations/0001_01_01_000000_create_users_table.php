@@ -18,26 +18,17 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
-
-            // User type and basic fitness fields
-            $table->enum('user_type', ['client', 'trainer', 'admin'])->default('client');
-            $table->integer('age')->nullable();
-            $table->decimal('height', 5, 2)->nullable(); // in cm
-            $table->decimal('weight', 5, 2)->nullable(); // in kg
-            $table->enum('fitness_level', ['beginner', 'intermediate', 'advanced'])->nullable();
-            $table->enum('activity_level', ['sedentary', 'lightly_active', 'moderately_active', 'very_active', 'extremely_active'])->default('moderately_active');
-            $table->json('fitness_goals')->nullable();
-            $table->string('profile_picture')->nullable();
-            $table->json('preferences')->nullable(); // Store JSON preferences
-
-            // Social login fields
-            $table->string('provider_id')->nullable();
-            $table->string('provider_name')->nullable();
-            $table->text('provider_token')->nullable();
-            $table->boolean('needs_profile_completion')->default(false);
-
+            $table->string('phone')->nullable();
+            $table->enum('user_type', ['ADMIN', 'TRAINER', 'CLIENT'])->default('CLIENT');
+            $table->enum('status', ['ACTIVE', 'INACTIVE', 'SUSPENDED'])->default('ACTIVE');
+            $table->timestamp('last_login')->nullable();
             $table->rememberToken();
             $table->timestamps();
+            $table->softDeletes();
+
+            // Indexes
+            $table->index('email');
+            $table->index(['user_type', 'status']);
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {

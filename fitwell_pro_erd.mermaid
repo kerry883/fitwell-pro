@@ -1,0 +1,722 @@
+erDiagram
+    %% ============================================
+    %% USER MANAGEMENT
+    %% ============================================
+    
+    USER {
+        uuid user_id PK
+        string email UK
+        string password_hash
+        string first_name
+        string last_name
+        string phone
+        enum user_type "ADMIN, TRAINER, CLIENT"
+        enum status "ACTIVE, INACTIVE, SUSPENDED"
+        timestamp created_at
+        timestamp updated_at
+        timestamp last_login
+    }
+    
+    USER_ROLE {
+        uuid role_id PK
+        uuid user_id FK
+        enum role_name "ADMIN, TRAINER, ASSISTANT_TRAINER, CLIENT"
+        json permissions
+        timestamp assigned_at
+    }
+    
+    %% ============================================
+    %% CLIENT PROFILE & HEALTH
+    %% ============================================
+    
+    CLIENT_PROFILE {
+        uuid profile_id PK
+        uuid user_id FK
+        date date_of_birth
+        enum gender "MALE, FEMALE, OTHER, PREFER_NOT_TO_SAY"
+        string address
+        string city
+        string country
+        string profile_photo_url
+        string timezone
+        json preferences
+        timestamp created_at
+        timestamp updated_at
+    }
+    
+    HEALTH_HISTORY {
+        uuid health_id PK
+        uuid user_id FK
+        text medical_conditions
+        text medications
+        text allergies
+        text injuries
+        text surgeries
+        boolean medical_clearance
+        string clearance_document_url
+        enum fitness_level "BEGINNER, INTERMEDIATE, ADVANCED, ATHLETE"
+        text exercise_limitations
+        timestamp created_at
+        timestamp updated_at
+    }
+    
+    EMERGENCY_CONTACT {
+        uuid contact_id PK
+        uuid user_id FK
+        string name
+        string relationship
+        string phone
+        string email
+        boolean is_primary
+    }
+    
+    CLIENT_GOAL {
+        uuid goal_id PK
+        uuid user_id FK
+        string goal_title
+        text goal_description
+        enum goal_type "WEIGHT_LOSS, MUSCLE_GAIN, STRENGTH, ENDURANCE, FLEXIBILITY, HEALTH, SPORT_SPECIFIC, OTHER"
+        decimal target_value
+        string target_unit
+        date target_date
+        enum status "ACTIVE, COMPLETED, PAUSED, CANCELLED"
+        decimal current_progress
+        timestamp created_at
+        timestamp updated_at
+    }
+    
+    FITNESS_ASSESSMENT {
+        uuid assessment_id PK
+        uuid user_id FK
+        uuid trainer_id FK
+        date assessment_date
+        decimal weight
+        decimal height
+        decimal body_fat_percentage
+        decimal bmi
+        json measurements
+        json performance_tests
+        text notes
+        string assessment_document_url
+        timestamp created_at
+    }
+    
+    %% ============================================
+    %% PROGRAM MANAGEMENT
+    %% ============================================
+    
+    PROGRAM_TEMPLATE {
+        uuid template_id PK
+        uuid created_by_trainer_id FK
+        string template_name
+        text description
+        enum program_type "WORKOUT, NUTRITION, HYBRID"
+        enum difficulty_level "BEGINNER, INTERMEDIATE, ADVANCED"
+        integer duration_weeks
+        boolean is_progressive
+        json phase_structure
+        boolean is_active
+        timestamp created_at
+        timestamp updated_at
+    }
+    
+    CLIENT_PROGRAM {
+        uuid client_program_id PK
+        uuid client_id FK
+        uuid template_id FK
+        uuid assigned_by_trainer_id FK
+        string program_name
+        enum assignment_type "STATIC, DYNAMIC_PROGRESSIVE"
+        date start_date
+        date end_date
+        enum status "ACTIVE, COMPLETED, PAUSED, CANCELLED"
+        integer current_week
+        integer current_phase
+        boolean auto_advance
+        json customizations
+        timestamp assigned_at
+        timestamp completed_at
+    }
+    
+    PROGRAM_PHASE {
+        uuid phase_id PK
+        uuid template_id FK
+        integer phase_number
+        string phase_name
+        text phase_description
+        integer duration_weeks
+        json phase_goals
+        integer sort_order
+    }
+    
+    %% ============================================
+    %% EXERCISE LIBRARY
+    %% ============================================
+    
+    EXERCISE_CATEGORY {
+        uuid category_id PK
+        string category_name
+        string description
+        uuid parent_category_id FK
+    }
+    
+    EXERCISE {
+        uuid exercise_id PK
+        uuid created_by_trainer_id FK
+        uuid category_id FK
+        string exercise_name
+        text description
+        text instructions
+        enum difficulty_level "BEGINNER, INTERMEDIATE, ADVANCED"
+        json muscle_groups
+        json equipment_needed
+        string video_demo_url
+        string image_url
+        json alternatives
+        boolean is_custom
+        timestamp created_at
+        timestamp updated_at
+    }
+    
+    %% ============================================
+    %% WORKOUT SESSIONS
+    %% ============================================
+    
+    WORKOUT_SESSION {
+        uuid session_id PK
+        uuid client_program_id FK
+        uuid phase_id FK
+        integer week_number
+        integer day_number
+        string session_name
+        text description
+        enum session_type "STRENGTH, CARDIO, FLEXIBILITY, HYBRID, REST"
+        integer estimated_duration_minutes
+        json warm_up
+        json cool_down
+        integer sort_order
+        timestamp created_at
+    }
+    
+    SESSION_EXERCISE {
+        uuid session_exercise_id PK
+        uuid session_id FK
+        uuid exercise_id FK
+        integer exercise_order
+        integer sets
+        integer reps
+        decimal weight
+        string weight_unit
+        integer duration_seconds
+        decimal distance
+        string distance_unit
+        integer rest_seconds
+        text notes
+        json tempo
+        boolean is_superset
+        integer superset_group
+    }
+    
+    WORKOUT_COMPLETION {
+        uuid completion_id PK
+        uuid session_id FK
+        uuid client_id FK
+        date completed_date
+        integer actual_duration_minutes
+        enum status "COMPLETED, PARTIAL, SKIPPED"
+        text notes
+        integer rating
+        timestamp completed_at
+    }
+    
+    EXERCISE_COMPLETION {
+        uuid exercise_completion_id PK
+        uuid completion_id FK
+        uuid session_exercise_id FK
+        integer sets_completed
+        integer reps_completed
+        decimal weight_used
+        integer duration_seconds
+        decimal distance_completed
+        text notes
+    }
+    
+    %% ============================================
+    %% NUTRITION MANAGEMENT
+    %% ============================================
+    
+    NUTRITION_PLAN {
+        uuid nutrition_plan_id PK
+        uuid client_program_id FK
+        string plan_name
+        text description
+        decimal daily_calories
+        decimal protein_grams
+        decimal carbs_grams
+        decimal fat_grams
+        integer meals_per_day
+        json dietary_restrictions
+        json meal_timing
+        date start_date
+        date end_date
+        enum status "ACTIVE, INACTIVE"
+        timestamp created_at
+    }
+    
+    MEAL_PLAN {
+        uuid meal_id PK
+        uuid nutrition_plan_id FK
+        enum meal_type "BREAKFAST, LUNCH, DINNER, SNACK, PRE_WORKOUT, POST_WORKOUT"
+        string meal_name
+        text description
+        text ingredients
+        text preparation
+        decimal calories
+        decimal protein
+        decimal carbs
+        decimal fat
+        string recipe_url
+        json allergens
+    }
+    
+    NUTRITION_LOG {
+        uuid log_id PK
+        uuid client_id FK
+        uuid nutrition_plan_id FK
+        date log_date
+        enum meal_type "BREAKFAST, LUNCH, DINNER, SNACK, OTHER"
+        text meal_description
+        decimal calories
+        decimal protein
+        decimal carbs
+        decimal fat
+        string photo_url
+        text notes
+        timestamp logged_at
+    }
+    
+    %% ============================================
+    %% VIDEO MANAGEMENT
+    %% ============================================
+    
+    VIDEO {
+        uuid video_id PK
+        uuid client_id FK
+        uuid session_id FK
+        uuid exercise_id FK
+        enum video_type "FORM_CHECK, PROGRESS_VIDEO, WORKOUT_COMPLETION, MEAL_PREP, CHECK_IN, INJURY_ASSESSMENT"
+        string video_url
+        string thumbnail_url
+        integer duration_seconds
+        text client_notes
+        date recorded_date
+        enum review_status "PENDING, IN_REVIEW, REVIEWED, APPROVED, NEEDS_REVISION"
+        timestamp uploaded_at
+        timestamp reviewed_at
+    }
+    
+    VIDEO_FEEDBACK {
+        uuid feedback_id PK
+        uuid video_id FK
+        uuid trainer_id FK
+        text written_feedback
+        string video_response_url
+        integer rating
+        json exercise_suggestions
+        boolean needs_follow_up
+        timestamp created_at
+        timestamp updated_at
+    }
+    
+    VIDEO_ANNOTATION {
+        uuid annotation_id PK
+        uuid feedback_id FK
+        integer timestamp_seconds
+        text annotation_text
+        json position_data
+        integer sort_order
+    }
+    
+    %% ============================================
+    %% PROGRESS TRACKING
+    %% ============================================
+    
+    PROGRESS_ENTRY {
+        uuid entry_id PK
+        uuid client_id FK
+        date entry_date
+        enum entry_type "MEASUREMENT, PERFORMANCE, PHOTO, ASSESSMENT, GENERAL"
+        json entry_data
+        text notes
+        timestamp created_at
+    }
+    
+    MEASUREMENT {
+        uuid measurement_id PK
+        uuid entry_id FK
+        uuid client_id FK
+        date measurement_date
+        decimal weight
+        string weight_unit
+        decimal body_fat_percentage
+        decimal muscle_mass
+        json body_measurements
+        timestamp recorded_at
+    }
+    
+    PERFORMANCE_METRIC {
+        uuid metric_id PK
+        uuid entry_id FK
+        uuid client_id FK
+        uuid exercise_id FK
+        date recorded_date
+        enum metric_type "STRENGTH, CARDIO, FLEXIBILITY, ENDURANCE"
+        string metric_name
+        decimal metric_value
+        string metric_unit
+        text notes
+    }
+    
+    PROGRESS_PHOTO {
+        uuid photo_id PK
+        uuid entry_id FK
+        uuid client_id FK
+        date photo_date
+        enum photo_type "FRONT, SIDE, BACK, PROGRESS, OTHER"
+        string photo_url
+        text notes
+        timestamp uploaded_at
+    }
+    
+    %% ============================================
+    %% SCHEDULING SYSTEM (DYNAMIC)
+    %% ============================================
+    
+    TRAINER_AVAILABILITY {
+        uuid availability_id PK
+        uuid trainer_id FK
+        enum day_of_week "MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY"
+        time start_time
+        time end_time
+        boolean is_recurring
+        date effective_from
+        date effective_until
+        integer slot_duration_minutes
+        integer buffer_time_minutes
+        boolean is_active
+    }
+    
+    APPOINTMENT {
+        uuid appointment_id PK
+        uuid trainer_id FK
+        uuid client_id FK
+        enum session_type "INDIVIDUAL, GROUP"
+        string title
+        text description
+        datetime scheduled_start
+        datetime scheduled_end
+        string location
+        string meeting_link
+        enum status "SCHEDULED, CONFIRMED, COMPLETED, CANCELLED, NO_SHOW, RESCHEDULED"
+        boolean is_recurring
+        uuid recurring_pattern_id FK
+        text cancellation_reason
+        timestamp created_at
+        timestamp updated_at
+    }
+    
+    RECURRING_PATTERN {
+        uuid pattern_id PK
+        enum recurrence_type "DAILY, WEEKLY, BIWEEKLY, MONTHLY"
+        json recurrence_rules
+        date start_date
+        date end_date
+        integer occurrences_count
+        json excluded_dates
+    }
+    
+    GROUP_SESSION {
+        uuid group_session_id PK
+        uuid appointment_id FK
+        uuid trainer_id FK
+        string session_name
+        text description
+        integer max_participants
+        integer current_participants
+        decimal price_per_person
+        enum status "OPEN, FULL, CANCELLED, COMPLETED"
+    }
+    
+    SESSION_PARTICIPANT {
+        uuid participant_id PK
+        uuid group_session_id FK
+        uuid client_id FK
+        datetime joined_at
+        enum attendance_status "REGISTERED, ATTENDED, ABSENT, CANCELLED"
+        text notes
+    }
+    
+    APPOINTMENT_REMINDER {
+        uuid reminder_id PK
+        uuid appointment_id FK
+        enum reminder_type "EMAIL, SMS, PUSH, IN_APP"
+        integer minutes_before
+        boolean is_sent
+        timestamp sent_at
+    }
+    
+    %% ============================================
+    %% COMMUNICATION
+    %% ============================================
+    
+    MESSAGE {
+        uuid message_id PK
+        uuid sender_id FK
+        uuid receiver_id FK
+        uuid thread_id FK
+        text message_content
+        json attachments
+        boolean is_read
+        timestamp sent_at
+        timestamp read_at
+    }
+    
+    MESSAGE_THREAD {
+        uuid thread_id PK
+        string thread_subject
+        enum thread_type "ONE_ON_ONE, GROUP, ANNOUNCEMENT"
+        timestamp created_at
+        timestamp last_message_at
+    }
+    
+    THREAD_PARTICIPANT {
+        uuid participant_id PK
+        uuid thread_id FK
+        uuid user_id FK
+        boolean is_active
+        timestamp joined_at
+    }
+    
+    NOTIFICATION {
+        uuid notification_id PK
+        uuid user_id FK
+        uuid related_entity_id FK
+        enum entity_type "VIDEO, MESSAGE, APPOINTMENT, WORKOUT, PAYMENT, GOAL, ASSESSMENT"
+        string notification_title
+        text notification_content
+        enum notification_type "INFO, WARNING, SUCCESS, REMINDER, ALERT"
+        boolean is_read
+        timestamp created_at
+        timestamp read_at
+    }
+    
+    NOTIFICATION_TEMPLATE {
+        uuid template_id PK
+        string template_name
+        enum trigger_event "WELCOME, WORKOUT_REMINDER, MISSED_SESSION, MILESTONE, PAYMENT_DUE, PROGRAM_START, PROGRAM_END"
+        string subject
+        text email_template
+        text sms_template
+        text push_template
+        json template_variables
+        boolean is_active
+    }
+    
+    AUTOMATED_MESSAGE {
+        uuid automated_id PK
+        uuid template_id FK
+        uuid client_id FK
+        enum trigger_condition "TIME_BASED, EVENT_BASED, CONDITION_BASED"
+        json trigger_rules
+        datetime scheduled_for
+        enum status "PENDING, SENT, FAILED, CANCELLED"
+        timestamp sent_at
+    }
+    
+    %% ============================================
+    %% PAYMENT & SUBSCRIPTION SYSTEM
+    %% ============================================
+    
+    PACKAGE {
+        uuid package_id PK
+        uuid created_by_trainer_id FK
+        string package_name
+        text description
+        enum package_type "ONE_TIME, SUBSCRIPTION, PER_SESSION, PER_PROGRAM"
+        decimal price
+        string currency
+        integer duration_days
+        integer session_count
+        json features_included
+        boolean is_active
+        timestamp created_at
+        timestamp updated_at
+    }
+    
+    CLIENT_SUBSCRIPTION {
+        uuid subscription_id PK
+        uuid client_id FK
+        uuid package_id FK
+        date start_date
+        date end_date
+        date next_billing_date
+        enum billing_frequency "MONTHLY, QUARTERLY, YEARLY, ONE_TIME"
+        decimal amount
+        string currency
+        enum status "ACTIVE, PAUSED, CANCELLED, EXPIRED"
+        boolean auto_renew
+        timestamp created_at
+        timestamp cancelled_at
+    }
+    
+    PAYMENT {
+        uuid payment_id PK
+        uuid client_id FK
+        uuid subscription_id FK
+        uuid appointment_id FK
+        uuid client_program_id FK
+        string invoice_number
+        decimal amount
+        string currency
+        enum payment_type "ONE_TIME, SUBSCRIPTION, SESSION, PROGRAM"
+        enum payment_method "CARD, BANK_TRANSFER, CASH, MOBILE_MONEY, OTHER"
+        date payment_date
+        date due_date
+        enum status "PENDING, COMPLETED, FAILED, REFUNDED, CANCELLED"
+        string transaction_id
+        text notes
+        timestamp created_at
+    }
+    
+    INVOICE {
+        uuid invoice_id PK
+        uuid payment_id FK
+        uuid client_id FK
+        string invoice_number UK
+        date issue_date
+        date due_date
+        decimal subtotal
+        decimal tax_amount
+        decimal discount_amount
+        decimal total_amount
+        string currency
+        enum status "DRAFT, SENT, PAID, OVERDUE, CANCELLED"
+        json line_items
+        text notes
+        string invoice_document_url
+        timestamp created_at
+    }
+    
+    %% ============================================
+    %% BUSINESS ANALYTICS
+    %% ============================================
+    
+    CLIENT_ENGAGEMENT {
+        uuid engagement_id PK
+        uuid client_id FK
+        date tracking_date
+        integer workouts_completed
+        integer videos_uploaded
+        integer messages_sent
+        integer logins_count
+        decimal completion_rate
+        timestamp last_activity
+    }
+    
+    BUSINESS_METRIC {
+        uuid metric_id PK
+        uuid trainer_id FK
+        date metric_date
+        enum metric_type "RETENTION, REVENUE, ATTENDANCE, SATISFACTION, REFERRAL"
+        string metric_name
+        decimal metric_value
+        json metric_details
+        timestamp calculated_at
+    }
+    
+    %% ============================================
+    %% RELATIONSHIPS
+    %% ============================================
+    
+    USER ||--o{ USER_ROLE : "has"
+    USER ||--o| CLIENT_PROFILE : "has"
+    USER ||--o| HEALTH_HISTORY : "has"
+    USER ||--o{ EMERGENCY_CONTACT : "has"
+    USER ||--o{ CLIENT_GOAL : "has"
+    USER ||--o{ FITNESS_ASSESSMENT : "undergoes"
+    USER ||--o{ FITNESS_ASSESSMENT : "conducts"
+    
+    USER ||--o{ PROGRAM_TEMPLATE : "creates"
+    USER ||--o{ CLIENT_PROGRAM : "assigned"
+    USER ||--o{ CLIENT_PROGRAM : "assigns"
+    PROGRAM_TEMPLATE ||--o{ CLIENT_PROGRAM : "based_on"
+    PROGRAM_TEMPLATE ||--o{ PROGRAM_PHASE : "contains"
+    
+    EXERCISE_CATEGORY ||--o{ EXERCISE_CATEGORY : "parent_of"
+    EXERCISE_CATEGORY ||--o{ EXERCISE : "contains"
+    USER ||--o{ EXERCISE : "creates"
+    
+    CLIENT_PROGRAM ||--o{ WORKOUT_SESSION : "contains"
+    PROGRAM_PHASE ||--o{ WORKOUT_SESSION : "contains"
+    WORKOUT_SESSION ||--o{ SESSION_EXERCISE : "contains"
+    EXERCISE ||--o{ SESSION_EXERCISE : "used_in"
+    
+    WORKOUT_SESSION ||--o{ WORKOUT_COMPLETION : "completed_by"
+    USER ||--o{ WORKOUT_COMPLETION : "completes"
+    WORKOUT_COMPLETION ||--o{ EXERCISE_COMPLETION : "contains"
+    SESSION_EXERCISE ||--o{ EXERCISE_COMPLETION : "tracked_in"
+    
+    CLIENT_PROGRAM ||--o{ NUTRITION_PLAN : "includes"
+    NUTRITION_PLAN ||--o{ MEAL_PLAN : "contains"
+    USER ||--o{ NUTRITION_LOG : "logs"
+    NUTRITION_PLAN ||--o{ NUTRITION_LOG : "tracked_by"
+    
+    USER ||--o{ VIDEO : "uploads"
+    WORKOUT_SESSION ||--o{ VIDEO : "related_to"
+    EXERCISE ||--o{ VIDEO : "demonstrates"
+    VIDEO ||--o{ VIDEO_FEEDBACK : "receives"
+    USER ||--o{ VIDEO_FEEDBACK : "provides"
+    VIDEO_FEEDBACK ||--o{ VIDEO_ANNOTATION : "contains"
+    
+    USER ||--o{ PROGRESS_ENTRY : "records"
+    PROGRESS_ENTRY ||--o| MEASUREMENT : "contains"
+    PROGRESS_ENTRY ||--o{ PERFORMANCE_METRIC : "contains"
+    PROGRESS_ENTRY ||--o{ PROGRESS_PHOTO : "contains"
+    USER ||--o{ MEASUREMENT : "records"
+    USER ||--o{ PERFORMANCE_METRIC : "achieves"
+    EXERCISE ||--o{ PERFORMANCE_METRIC : "tracked_for"
+    USER ||--o{ PROGRESS_PHOTO : "uploads"
+    
+    USER ||--o{ TRAINER_AVAILABILITY : "sets"
+    USER ||--o{ APPOINTMENT : "trains"
+    USER ||--o{ APPOINTMENT : "attends"
+    RECURRING_PATTERN ||--o{ APPOINTMENT : "generates"
+    APPOINTMENT ||--o| GROUP_SESSION : "may_be"
+    USER ||--o{ GROUP_SESSION : "hosts"
+    GROUP_SESSION ||--o{ SESSION_PARTICIPANT : "has"
+    USER ||--o{ SESSION_PARTICIPANT : "participates"
+    APPOINTMENT ||--o{ APPOINTMENT_REMINDER : "has"
+    
+    USER ||--o{ MESSAGE : "sends"
+    USER ||--o{ MESSAGE : "receives"
+    MESSAGE_THREAD ||--o{ MESSAGE : "contains"
+    MESSAGE_THREAD ||--o{ THREAD_PARTICIPANT : "has"
+    USER ||--o{ THREAD_PARTICIPANT : "participates_in"
+    
+    USER ||--o{ NOTIFICATION : "receives"
+    NOTIFICATION_TEMPLATE ||--o{ AUTOMATED_MESSAGE : "uses"
+    USER ||--o{ AUTOMATED_MESSAGE : "scheduled_for"
+    
+    USER ||--o{ PACKAGE : "creates"
+    PACKAGE ||--o{ CLIENT_SUBSCRIPTION : "subscribed_to"
+    USER ||--o{ CLIENT_SUBSCRIPTION : "subscribes"
+    
+    USER ||--o{ PAYMENT : "makes"
+    CLIENT_SUBSCRIPTION ||--o{ PAYMENT : "generates"
+    APPOINTMENT ||--o{ PAYMENT : "generates"
+    CLIENT_PROGRAM ||--o{ PAYMENT : "generates"
+    PAYMENT ||--o| INVOICE : "documented_by"
+    USER ||--o{ INVOICE : "receives"
+    
+    USER ||--o{ CLIENT_ENGAGEMENT : "tracked_for"
+    USER ||--o{ BUSINESS_METRIC : "tracked_by"

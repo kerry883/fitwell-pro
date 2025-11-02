@@ -3,46 +3,38 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Filament\Models\Contracts\FilamentUser;
+use Filament\Panel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Spatie\Permission\Traits\HasRoles;
 
-class User extends Authenticatable
+class User extends Authenticatable implements FilamentUser
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, SoftDeletes, HasRoles;
 
     /**
      * The attributes that are mass assignable.
      *
-     * @var list<string>
+     * @var array<string>
      */
     protected $fillable = [
         'first_name',
         'last_name',
         'email',
         'password',
+        'phone',
         'user_type',
-        'gender',
-        'age',
-        'height',
-        'weight',
-        'fitness_level',
-        'activity_level',
-        'fitness_goals',
-        'profile_picture',
-        'preferences',
-        'provider_id',
-        'provider_name',
-        'provider_token',
-        'needs_profile_completion',
-        'email_verified_at',
+        'status',
+        'last_login',
     ];
 
     /**
      * The attributes that should be hidden for serialization.
      *
-     * @var list<string>
+     * @var array<string>
      */
     protected $hidden = [
         'password',
@@ -59,119 +51,55 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
-            'preferences' => 'array',
-            'fitness_goals' => 'array',
-            'needs_profile_completion' => 'boolean',
+            'last_login' => 'datetime',
         ];
     }
 
     /**
-     * Relationships
+     * Determine if the user can access the Filament panel.
      */
-    public function workouts()
+    public function canAccessPanel(Panel $panel): bool
     {
-        return $this->hasMany(Workout::class);
-    }
-
-    public function nutritionEntries()
-    {
-        return $this->hasMany(NutritionEntry::class);
-    }
-
-    public function progressLogs()
-    {
-        return $this->hasMany(ProgressLog::class);
-    }
-
-    public function clientProfile()
-    {
-        return $this->hasOne(ClientProfile::class);
-    }
-
-    public function trainerProfile()
-    {
-        return $this->hasOne(TrainerProfile::class);
-    }
-
-    public function adminProfile()
-    {
-        return $this->hasOne(AdminProfile::class);
-    }
-
-    public function notifications()
-    {
-        return $this->hasMany(Notification::class);
-    }
-
-    /**
-     * Helper methods
-     */
-    public function getFullNameAttribute()
-    {
-        return trim($this->first_name . ' ' . $this->last_name);
-    }
-
-    public function getBmiAttribute()
-    {
-        if ($this->height && $this->weight) {
-            $heightInMeters = $this->height / 100;
-            return round($this->weight / ($heightInMeters * $heightInMeters), 2);
+        // Allow access based on panel ID
+        if ($panel->getId() === 'admin') {
+            return $this->user_type === 'ADMIN';
         }
-        return null;
-    }
 
-    public function getBmrAttribute()
-    {
-        if ($this->age && $this->height && $this->weight && $this->gender) {
-            $heightInCm = $this->height;
-            $weightInKg = $this->weight;
-            $age = $this->age;
+        if ($panel->getId() === 'trainer') {
+            return in_array($this->user_type, ['ADMIN', 'TRAINER']);
+        }
 
-            if ($this->gender === 'male') {
-                // Mifflin-St Jeor Equation for men: BMR = 10 * weight + 6.25 * height - 5 * age + 5
-                return round(10 * $weightInKg + 6.25 * $heightInCm - 5 * $age + 5, 2);
-            } elseif ($this->gender === 'female') {
-                // Mifflin-St Jeor Equation for women: BMR = 10 * weight + 6.25 * height - 5 * age - 161
-                return round(10 * $weightInKg + 6.25 * $heightInCm - 5 * $age - 161, 2);
-            }
-        }
-        return null;
-    }
-
-    public function isAdmin()
-    {
-        return $this->user_type === 'admin';
-    }
-    
-    /**
-     * Verify admin has proper privileges and active status
-     */
-    public function hasAdminPrivileges()
-    {
-        if (!$this->isAdmin()) {
-            return false;
-        }
-        
-        // Check if admin profile exists and is active
-        if (!$this->adminProfile || $this->adminProfile->status !== 'active') {
-            return false;
-        }
-        
         return true;
     }
 
-    public function isTrainer()
+    /**
+     * Get the user's full name.
+     */
+    public function getFullNameAttribute(): string
     {
-        return $this->user_type === 'trainer';
+        return "{$this->first_name} {$this->last_name}";
     }
 
-    public function isClient()
-    {
-        return $this->user_type === 'client';
-    }
-
-    public function hasSocialProvider()
-    {
-        return !empty($this->provider_name);
-    }
+    /**
+     * Get the user's name for Filament.
+     * This is required by Filament's FilamentUser interface.
+     */
+  public function getFilamentName(): string
+{
+    // Always return a string — never null
+    $fullName = trim("{$this->first_name} {$this->last_name}");
+    return $fullName !== '' ? $fullName : ($this->email ?? 'Unknown User');
 }
+
+public function getFilamentAvatarUrl(): ?string
+{
+    // Optional: generate a default avatar if none uploaded
+    return 'https://ui-avatars.com/api/?name=' . urlencode($this->getFilamentName());
+}
+
+// Optional: covers other packages expecting $user->name
+public function getNameAttribute(): string
+{
+    return $this->getFilamentName();
+}
+}   
